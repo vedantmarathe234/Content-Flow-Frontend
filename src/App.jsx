@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
 import UserDashboard from "./pages/user/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
+import ResetPassword from "./pages/ResetPassword";
 
 const MainLayout = () => (
   <div className="min-h-screen bg-slate-50 flex">
@@ -45,33 +46,61 @@ function App() {
           element={<ForgotPassword />}
         />
 
+        <Route
+  path="/reset-password"
+  element={<ResetPassword />}
+/>
+
       
-<Route element={<MainLayout />}>
+<Route
+  element={
+    <ProtectedRoute>
+      <MainLayout />
+    </ProtectedRoute>
+  }
+>
 
   <Route
     path="/admin/dashboard"
-    element={
-      <ProtectedRoute>
-        <AdminDashboard />
-      </ProtectedRoute>
-    }
+    element={<AdminDashboard />}
   />
 
   <Route
     path="/user/dashboard"
-    element={
-      <ProtectedRoute>
-        <UserDashboard />
-      </ProtectedRoute>
-    }
+    element={<UserDashboard />}
+  />
+
+  <Route
+    path="/departments"
+    element={<h1>Departments Page</h1>}
+  />
+
+  <Route
+    path="/teams"
+    element={<h1>Teams Page</h1>}
+  />
+
+  <Route
+    path="/users"
+    element={<h1>Users Page</h1>}
+  />
+
+  <Route
+    path="/approvals"
+    element={<h1>Approvals Page</h1>}
+  />
+
+  <Route
+    path="/content"
+    element={<h1>Content Page</h1>}
+  />
+
+  <Route
+    path="/settings"
+    element={<h1>Settings Page</h1>}
   />
 
 </Route>
-
-        <Route
-          path="*"
-          element={<Navigate to="/login" replace />}
-        />
 
       </Routes>
 <Toaster
