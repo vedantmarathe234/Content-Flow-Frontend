@@ -11,7 +11,14 @@ const Sidebar = () => {
   const location = useLocation();
 
   const menuItems = [
-    { name: 'Dashboard', icon: <LayoutDashboard size={18} />, path: '/dashboard' },
+    {
+  name: 'Dashboard',
+  icon: <LayoutDashboard size={18} />,
+  path:
+    localStorage.getItem("role") === "ADMIN"
+      ? "/admin/dashboard"
+      : "/user/dashboard"
+},
     { name: 'Departments', icon: <Building2 size={18} />, path: '/departments' },
     { name: 'Teams', icon: <Users size={18} />, path: '/teams' },
     { name: 'Users / Interns', icon: <UserRound size={18} />, path: '/users' },
