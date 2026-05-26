@@ -4,6 +4,8 @@ import {
   LayoutDashboard, Building2, Users, UserRound, 
   CheckCircle2, FileStack, Settings, LogOut 
 } from 'lucide-react';
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
   const location = useLocation();
@@ -48,10 +50,32 @@ const Sidebar = () => {
       </nav>
 
       <div className="p-4 border-t border-slate-800">
-        <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-[13px] font-medium">
-          <LogOut size={18} />
-          Logout
-        </button>
+       
+
+      <button
+  onClick={() => {
+
+    localStorage.removeItem("token");
+
+    toast.success(
+      "Logged out successfully"
+    );
+
+    setTimeout(() => {
+
+      window.location.href = "/login";
+
+    }, 1200);
+
+  }}
+  className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-[13px] font-medium"
+>
+
+  <LogOut size={18} />
+
+  Logout
+
+</button>
       </div>
     </aside>
   );
