@@ -9,23 +9,24 @@ import { useNavigate } from "react-router-dom";
 
 const Sidebar = () => {
   const location = useLocation();
+  const userRole = localStorage.getItem("role");
 
   const menuItems = [
     {
-  name: 'Dashboard',
-  icon: <LayoutDashboard size={18} />,
-  path:
-    localStorage.getItem("role") === "ADMIN"
-      ? "/admin/dashboard"
-      : "/user/dashboard"
-},
-    { name: 'Departments', icon: <Building2 size={18} />, path: '/departments' },
+      name: 'Dashboard',
+      icon: <LayoutDashboard size={18} />,
+      path: userRole === "ADMIN" ? "/admin/dashboard" : "/user/dashboard"
+    },
+    { name: 'Departments', icon: <Building2 size={18} />, path: '/admin/create-department' },
     { name: 'Teams', icon: <Users size={18} />, path: '/teams' },
     { name: 'Users / Interns', icon: <UserRound size={18} />, path: '/users' },
     { name: 'Pending Approvals', icon: <CheckCircle2 size={18} />, path: '/approvals' },
     { name: 'All Content', icon: <FileStack size={18} />, path: '/content' },
     { name: 'Settings', icon: <Settings size={18} />, path: '/settings' },
-  ];
+  ].filter(item => {
+    if (userRole === "INTERN" && item.name === 'Departments') return false;
+    return true;
+  });
 
   return (
     <aside className="w-64 h-screen bg-[#0f172a] text-slate-400 flex flex-col fixed left-0 top-0 z-40">
@@ -57,32 +58,20 @@ const Sidebar = () => {
       </nav>
 
       <div className="p-4 border-t border-slate-800">
-       
-
-      <button
-  onClick={() => {
-
-    localStorage.removeItem("token");
-
-    toast.success(
-      "Logged out successfully"
-    );
-
-    setTimeout(() => {
-
-      window.location.href = "/login";
-
-    }, 1200);
-
-  }}
-  className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-[13px] font-medium"
->
-
-  <LogOut size={18} />
-
-  Logout
-
-</button>
+        <button
+          onClick={() => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("role");
+            toast.success("Logged out successfully");
+            setTimeout(() => {
+              window.location.href = "/login";
+            }, 1200);
+          }}
+          className="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-[13px] font-medium"
+        >
+          <LogOut size={18} />
+          Logout
+        </button>
       </div>
     </aside>
   );

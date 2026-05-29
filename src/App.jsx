@@ -10,6 +10,8 @@ import { Toaster } from "react-hot-toast";
 import UserDashboard from "./pages/user/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
+import CreateDepartment from "./pages/admin/CreateDepartment"; 
+import DepartmentDetails from "./pages/admin/DepartmentDetails"; 
 
 const MainLayout = () => (
   <div className="min-h-screen bg-slate-50 flex">
@@ -27,116 +29,58 @@ const MainLayout = () => (
 
 function App() {
   return (
-    <Router>
-
-      <Routes>
-
-        <Route
-          path="/login"
-          element={<Login />}
-        />
-
-        <Route
-          path="/register"
-          element={<Register />}
-        />
-
-        <Route
-          path="/forgot-password"
-          element={<ForgotPassword />}
-        />
-
-        <Route
-  path="/reset-password"
-  element={<ResetPassword />}
-/>
-
+    <>
+      <Toaster
+        position="top-center"
+        reverseOrder={false}
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: "rgba(17,24,39,0.9)",
+            backdropFilter: "blur(10px)",
+            color: "#fff",
+            padding: "16px 24px",
+            fontSize: "16px",
+            borderRadius: "16px",
+            minWidth: "340px",
+            textAlign: "center",
+            border: "1px solid rgba(255,255,255,0.1)",
+            zIndex: 99999, 
+          },
+          success: { iconTheme: { primary: "#2563eb", secondary: "#fff" } },
+          error: { iconTheme: { primary: "#ef4444", secondary: "#fff" } },
+        }}
+      />
       
-<Route
-  element={
-    <ProtectedRoute>
-      <MainLayout />
-    </ProtectedRoute>
-  }
->
-
-  <Route
-    path="/admin/dashboard"
-    element={<AdminDashboard />}
-  />
-
-  <Route
-    path="/user/dashboard"
-    element={<UserDashboard />}
-  />
-
-  <Route
-    path="/departments"
-    element={<h1>Departments Page</h1>}
-  />
-
-  <Route
-    path="/teams"
-    element={<h1>Teams Page</h1>}
-  />
-
-  <Route
-    path="/users"
-    element={<h1>Users Page</h1>}
-  />
-
-  <Route
-    path="/approvals"
-    element={<h1>Approvals Page</h1>}
-  />
-
-  <Route
-    path="/content"
-    element={<h1>Content Page</h1>}
-  />
-
-  <Route
-    path="/settings"
-    element={<h1>Settings Page</h1>}
-  />
-
-</Route>
-
-      </Routes>
-<Toaster
-  position="top-center"
-  reverseOrder={false}
-  toastOptions={{
-    duration: 3000,
-
-  style: {
-  background: "rgba(17,24,39,0.9)",
-  backdropFilter: "blur(10px)",
-  color: "#fff",
-  padding: "16px 24px",
-  fontSize: "16px",
-  borderRadius: "16px",
-  minWidth: "340px",
-  textAlign: "center",
-  border: "1px solid rgba(255,255,255,0.1)"
-},
-
-    success: {
-      iconTheme: {
-        primary: "#2563eb",
-        secondary: "#fff",
-      },
-    },
-
-    error: {
-      iconTheme: {
-        primary: "#ef4444",
-        secondary: "#fff",
-      },
-    },
-  }}
-/>
-    </Router>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+        
+          <Route
+            element={
+              <ProtectedRoute>
+                <MainLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/create-department" element={<CreateDepartment />}/>
+            <Route path="/admin/department/:id" element={<DepartmentDetails />} />
+            <Route path="/user/dashboard" element={<UserDashboard />} />
+            <Route path="/departments" element={<h1>Departments Page</h1>} />
+            <Route path="/teams" element={<h1>Teams Page</h1>} />
+            <Route path="/users" element={<h1>Users Page</h1>} />
+            <Route path="/approvals" element={<h1>Approvals Page</h1>} />
+            <Route path="/content" element={<h1>Content Page</h1>} />
+            <Route path="/settings" element={<h1>Settings Page</h1>} />
+          </Route>
+        </Routes>
+      </Router>
+    </>
   );
 }
 
