@@ -30,7 +30,7 @@ const DepartmentDetails = () => {
     if (loading) return <div className="p-8">Loading...</div>;
 
     return (
-        <div className="p-8">
+        <div className="">
             <div className="flex items-center gap-4 mb-8">
                 <button 
                     onClick={() => navigate(-1)} 
@@ -42,8 +42,9 @@ const DepartmentDetails = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Interns Section */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                    <h2 className="font-bold text-lg mb-6 text-slate-800">Interns ({details.interns ? details.interns.length : 0})</h2>
+                    <h2 className="font-bold text-lg mb-6 text-slate-800">Interns ({details.interns?.length || 0})</h2>
                     {details.interns && details.interns.length > 0 ? (
                         <div className="space-y-4">
                             {details.interns.map((i) => (
@@ -66,16 +67,21 @@ const DepartmentDetails = () => {
                     )}
                 </div>
 
+                {/* Teams Section */}
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-                    <h2 className="font-bold text-lg mb-6 text-slate-800">Teams ({details.teams ? details.teams.length : 0})</h2>
+                    <h2 className="font-bold text-lg mb-6 text-slate-800">Teams ({details.teams?.length || 0})</h2>
                     {details.teams && details.teams.length > 0 ? (
-                        <ul className="space-y-2">
+                        <div className="space-y-4">
                             {details.teams.map((t) => (
-                                <li key={t.id} className="p-3 bg-slate-50 rounded-lg text-slate-700 font-medium">
-                                    {t.name}
-                                </li>
+                                <div key={t.id} className="p-4 bg-slate-50 rounded-xl border border-slate-100 flex items-center justify-between">
+                                    <p className="font-bold text-slate-900">{t.name}</p>
+                                    <div className="flex items-center gap-6 text-xs text-slate-500">
+                                        <span>Leader: <span className="font-medium text-slate-700">{t.teamLeader}</span></span>
+                                        <span>Members: <span className="font-medium text-slate-700">{t.memberCount}</span></span>
+                                    </div>
+                                </div>
                             ))}
-                        </ul>
+                        </div>
                     ) : (
                         <p className="text-slate-500 italic">No teams available.</p>
                     )}
