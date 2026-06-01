@@ -4,6 +4,7 @@ import TeamModal from './TeamModal';
 import { Trash2, Edit3, Plus, ArrowLeft } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { FiEdit2 } from 'react-icons/fi';
 
 const TeamsPage = () => {
   const navigate = useNavigate();
@@ -73,7 +74,7 @@ const TeamsPage = () => {
                 </div>
                 <div className="flex items-center gap-3">
                   <button onClick={() => { setCurrentTeam(team); setIsModalOpen(true); }} className="text-indigo-600 hover:text-indigo-800 transition-colors">
-                    <Edit3 size={18} />
+                    <FiEdit2 size={18} />
                   </button>
                   <button onClick={() => handleDelete(team.id)} className="text-red-500 hover:text-red-700 transition-colors">
                     <Trash2 size={18} />
