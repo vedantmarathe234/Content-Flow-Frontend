@@ -12,6 +12,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import ResetPassword from "./pages/ResetPassword";
 import CreateDepartment from "./pages/admin/CreateDepartment"; 
 import DepartmentDetails from "./pages/admin/DepartmentDetails"; 
+import TeamsPage from "./pages/admin/TeamsPage";
 
 const MainLayout = () => (
   <div className="min-h-screen bg-slate-50 flex">
@@ -71,6 +72,7 @@ function App() {
             <Route path="/admin/create-department" element={<CreateDepartment />}/>
             <Route path="/admin/department/:id" element={<DepartmentDetails />} />
             <Route path="/user/dashboard" element={<UserDashboard />} />
+            <Route path="/admin/teams" element={<TeamsPage />} />
             <Route path="/departments" element={<h1>Departments Page</h1>} />
             <Route path="/teams" element={<h1>Teams Page</h1>} />
             <Route path="/users" element={<h1>Users Page</h1>} />

@@ -5,13 +5,13 @@ const API = axios.create({
 });
 
 API.interceptors.request.use((req) => {
-
-  const token = localStorage.getItem("token");
-
+  
+  let token = localStorage.getItem("token");
+  
   if (token) {
-
-    req.headers.Authorization =
-      `Bearer ${token}`;
+    
+   token = token.replace(/"/g, "");
+    req.headers.Authorization = `Bearer ${token}`;
   }
 
   return req;
