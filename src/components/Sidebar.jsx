@@ -10,7 +10,7 @@ const Sidebar = () => {
   const menuItems = [
     { name: 'Dashboard', icon: <LayoutDashboard size={18} />, path: userRole === "ADMIN" ? "/admin/dashboard" : "/user/dashboard" },
     { name: 'Departments', icon: <Building2 size={18} />, path: '/admin/create-department' },
-    { name: 'Teams', icon: <Users size={18} />, path: userRole === "ADMIN" ? '/admin/teams' : '/teams' },
+    { name: 'Teams', icon: <Users size={18} />, path: userRole === "ADMIN" ? '/admin/teams' : '/user/teams' },
     { name: 'Users / Interns', icon: <UserRound size={18} />, path: '/users' },
     { name: 'Pending Approvals', icon: <CheckCircle2 size={18} />, path: '/approvals' },
     { name: 'All Content', icon: <FileStack size={18} />, path: '/content' },

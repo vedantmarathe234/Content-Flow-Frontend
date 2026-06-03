@@ -72,8 +72,9 @@ function App() {
             <Route path="/admin/create-department" element={<CreateDepartment />}/>
             <Route path="/admin/department/:id" element={<DepartmentDetails />} />
             <Route path="/user/dashboard" element={<UserDashboard />} />
-            <Route path="/admin/teams" element={<TeamsPage />} />
             <Route path="/departments" element={<h1>Departments Page</h1>} />
+              <Route path="/admin/teams" element={<TeamsPage />} />
+              <Route path="/user/teams" element={<TeamsPage />} />
             <Route path="/teams" element={<h1>Teams Page</h1>} />
             <Route path="/users" element={<h1>Users Page</h1>} />
             <Route path="/approvals" element={<h1>Approvals Page</h1>} />
