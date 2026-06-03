@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { LayoutDashboard, Building2, Users, UserRound, CheckCircle2, FileStack, Settings, LogOut } from 'lucide-react';
+import { LayoutDashboard, Building2, Users, UserRound, CheckCircle2, FileStack, Settings, LogOut, Clock } from 'lucide-react';
+
 import toast from "react-hot-toast";
 
 const Sidebar = () => {
@@ -11,9 +12,11 @@ const Sidebar = () => {
     { name: 'Dashboard', icon: <LayoutDashboard size={18} />, path: userRole === "ADMIN" ? "/admin/dashboard" : "/user/dashboard" },
     { name: 'Departments', icon: <Building2 size={18} />, path: '/admin/create-department' },
     { name: 'Teams', icon: <Users size={18} />, path: userRole === "ADMIN" ? '/admin/teams' : '/teams' },
+    { name: 'Content', icon: <FileStack size={18} />, path: '/content' },
     { name: 'Users / Interns', icon: <UserRound size={18} />, path: '/users' },
-    { name: 'Pending Approvals', icon: <CheckCircle2 size={18} />, path: '/approvals' },
-    { name: 'All Content', icon: <FileStack size={18} />, path: '/content' },
+
+
+{name: 'Pending Approvals', icon: <Clock size={18} />, path: '/pending-approvals' },
     { name: 'Settings', icon: <Settings size={18} />, path: '/settings' },
   ].filter(item => {
     if (userRole === "INTERN") {

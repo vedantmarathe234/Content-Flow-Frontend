@@ -37,6 +37,11 @@ const Login = () => {
   response.data.role
 );
 
+localStorage.setItem(
+  "isTeamLeader",
+  response.data.teamLeader
+);
+
   toast.success("Login Successful");
 
   if (response.data.role === "ADMIN") {

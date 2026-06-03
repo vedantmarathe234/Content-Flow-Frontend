@@ -13,6 +13,10 @@ import ResetPassword from "./pages/ResetPassword";
 import CreateDepartment from "./pages/admin/CreateDepartment"; 
 import DepartmentDetails from "./pages/admin/DepartmentDetails"; 
 import TeamsPage from "./pages/admin/TeamsPage";
+import ContentPage from "./pages/content/ContentPage";
+import ContentDatePage from "./pages/content/ContentDatePage";
+import ContentDetailsPage from "./pages/content/ContentDetailsPage";
+import PendingApprovalsPage from "./pages/content/PendingApprovalsPage";
 
 const MainLayout = () => (
   <div className="min-h-screen bg-slate-50 flex">
@@ -77,7 +81,22 @@ function App() {
             <Route path="/teams" element={<h1>Teams Page</h1>} />
             <Route path="/users" element={<h1>Users Page</h1>} />
             <Route path="/approvals" element={<h1>Approvals Page</h1>} />
-            <Route path="/content" element={<h1>Content Page</h1>} />
+            <Route
+  path="/content"
+  element={<ContentPage />}
+/>
+<Route
+  path="/content/date/:date"
+  element={<ContentDatePage />}
+/>
+<Route
+  path="/content/view/:id"
+  element={<ContentDetailsPage />}
+/>
+<Route
+  path="/pending-approvals"
+  element={<PendingApprovalsPage />}
+/>
             <Route path="/settings" element={<h1>Settings Page</h1>} />
           </Route>
         </Routes>
