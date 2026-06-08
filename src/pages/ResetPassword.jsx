@@ -50,7 +50,7 @@ const ResetPassword = () => {
 
       setTimeout(() => {
 
-        navigate("/login");
+        navigate("/auth");
 
       }, 1500);
 
@@ -130,7 +130,7 @@ const ResetPassword = () => {
           <div className="text-center">
 
             <Link
-              to="/login"
+              to="/auth"
               className="text-blue-600 text-sm font-medium"
             >
 

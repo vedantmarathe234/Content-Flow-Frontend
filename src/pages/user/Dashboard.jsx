@@ -1,5 +1,7 @@
 import React from 'react';
 
+
+
 import {
   AreaChart,
   Area,
@@ -21,6 +23,13 @@ import {
   Activity
 } from 'lucide-react';
 
+import { useEffect, useState } from "react";
+import API from "../../services/api";
+import { getMyDashboardStats, getTeamDashboardStats }
+from "../../services/contentService";
+import { getRecentActivity }
+from "../../services/notificationService";
+
 const activityData = [
   { name: 'Mon', count: 2 },
   { name: 'Tue', count: 4 },
@@ -31,15 +40,157 @@ const activityData = [
   { name: 'Sun', count: 5 }
 ];
 
-const statusData = [
-  { name: 'Approved', value: 60, color: '#3b82f6' },
-  { name: 'Pending', value: 25, color: '#f59e0b' },
-  { name: 'Rejected', value: 15, color: '#ef4444' },
-];
 
 const UserDashboard = () => {
 
+  const [stats, setStats] =
+  useState(null);
+  const [activities, setActivities] =
+  useState([]);
+
+  const [teams, setTeams] =
+  useState([]);
+
+const [selectedTeam, setSelectedTeam] =
+  useState(null);
+
+const currentUserId =
+  Number(localStorage.getItem("userId"));
+
+  const fetchRecentActivity =
+  async () => {
+
+    try {
+
+      const response =
+        await getRecentActivity();
+
+      setActivities(
+        response.data
+      );
+
+    } catch (error) {
+
+      console.error(error);
+
+    }
+
+};
+
+useEffect(() => {
+  fetchDashboardStats();
+  fetchTeams();
+  fetchRecentActivity();
+}, []);
+
+
+const fetchDashboardStats =
+  async (teamId = null) => {
+
+    try {
+
+      let response;
+
+      if (teamId) {
+
+        response =
+          await getTeamDashboardStats(
+            teamId
+          );
+
+      } else {
+
+        response =
+          await getMyDashboardStats();
+
+      }
+
+      setStats(response.data);
+
+    } catch (error) {
+
+      console.error(error);
+
+    }
+};
+
+const fetchTeams = async () => {
+
+  try {
+
+    const response =
+      await API.get("/teams/my-team");
+
+    setTeams(response.data);
+    if (response.data.length > 0) {
+
+  setSelectedTeam(
+    response.data[0]
+  );
+
+  fetchDashboardStats(
+    response.data[0].id
+  );
+
+}
+
+    if (response.data.length > 0) {
+      setSelectedTeam(response.data[0]);
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+  }
+
+};
+
   const role = localStorage.getItem("role");
+
+  const isLeader =
+  selectedTeam?.teamLeaderId === currentUserId;
+
+  if (!stats) {
+  return <div>Loading...</div>;
+}
+
+const total =
+  stats.approved +
+  stats.rejected +
+  stats.pendingLeader +
+  stats.pendingAdmin;
+
+const statusData = [
+  {
+    name: "Approved",
+    value:
+      total > 0
+        ? Math.round((stats.approved * 100) / total)
+        : 0,
+    color: "#3b82f6"
+  },
+  {
+    name: "Pending",
+    value:
+      total > 0
+        ? Math.round(
+            ((stats.pendingLeader + stats.pendingAdmin) * 100) / total
+          )
+        : 0,
+    color: "#f59e0b"
+  },
+  {
+    name: "Rejected",
+    value:
+      total > 0
+        ? Math.round((stats.rejected * 100) / total)
+        : 0,
+    color: "#ef4444"
+  }
+];
+
+
 
   return (
 
@@ -57,43 +208,93 @@ const UserDashboard = () => {
 
       </div>
 
+      <div className="flex gap-2 flex-wrap">
+
+  {teams.map((team) => (
+
+    <button
+      key={team.id}
+     onClick={() => {
+
+  setSelectedTeam(team);
+
+  fetchDashboardStats(
+    team.id
+  );
+
+}}
+      className={`px-4 py-2 rounded-lg font-medium transition-all
+      ${
+        selectedTeam?.id === team.id
+          ? "bg-blue-600 text-white"
+          : "bg-white border border-slate-200"
+      }`}
+    >
+      {team.name}
+    </button>
+
+  ))}
+
+</div>
+
+{selectedTeam && (
+
+  <div className="text-sm text-slate-500">
+
+    Team: {selectedTeam.name}
+
+    {isLeader && (
+      <span className="ml-2 text-green-600 font-semibold">
+        (Team Leader)
+      </span>
+    )}
+
+  </div>
+
+)}
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
 
         {[
           {
             title: 'Total Content',
-            val: '12',
+            val: stats.totalContent,
             icon: <FileText size={18} />,
             bg: 'bg-blue-50 text-blue-600'
           },
 
           {
             title: 'Pending',
-            val: '4',
+            val:
+  stats.pendingLeader +
+  stats.pendingAdmin,
             icon: <Clock size={18} />,
             bg: 'bg-orange-50 text-orange-600'
           },
 
           {
             title: 'Approved',
-            val: '8',
+            val: stats.approved,
             icon: <CheckCircle size={18} />,
             bg: 'bg-green-50 text-green-600'
           },
 
           {
             title: 'Rejected',
-            val: '1',
+            val: stats.rejected,
             icon: <XCircle size={18} />,
             bg: 'bg-red-50 text-red-600'
           },
 
           {
-            title: 'Activity',
-            val: '92%',
-            icon: <Activity size={18} />,
-            bg: 'bg-purple-50 text-purple-600'
-          }
+  title: 'Approval Rate',
+  val:
+    total > 0
+      ? `${Math.round((stats.approved * 100) / total)}%`
+      : "0%",
+  icon: <Activity size={18} />,
+  bg: 'bg-purple-50 text-purple-600'
+}
 
         ].map((card, i) => (
 
@@ -208,72 +409,107 @@ const UserDashboard = () => {
 
         </div>
 
-        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm flex flex-col justify-between">
+        <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
 
-          <h3 className="text-sm font-bold text-slate-800 mb-2">
-            Content Status
-          </h3>
+  <h3 className="text-sm font-bold text-slate-800 mb-2">
+    Content Status
+  </h3>
 
-          <div className="h-44 w-full relative flex items-center justify-center">
+  <div className="h-44 w-full relative flex items-center justify-center">
 
-            <ResponsiveContainer width="100%" height="100%">
+    <ResponsiveContainer width="100%" height="100%">
+      <PieChart>
+        <Pie
+          data={statusData}
+          innerRadius={55}
+          outerRadius={75}
+          paddingAngle={4}
+          dataKey="value"
+        >
+          {statusData.map((entry, index) => (
+            <Cell
+              key={index}
+              fill={entry.color}
+            />
+          ))}
+        </Pie>
 
-              <PieChart>
+        <Tooltip />
+      </PieChart>
+    </ResponsiveContainer>
 
-                <Pie
-                  data={statusData}
-                  innerRadius={55}
-                  outerRadius={75}
-                  paddingAngle={4}
-                  dataKey="value"
-                >
+  </div>
 
-                  {
-                    statusData.map((entry, index) => (
+  <div className="mt-4 space-y-3">
 
-                      <Cell
-                        key={index}
-                        fill={entry.color}
-                      />
+    {statusData.map((item) => (
 
-                    ))
-                  }
+      <div
+        key={item.name}
+        className="flex justify-between text-xs"
+      >
 
-                </Pie>
+        <div className="flex items-center gap-2">
 
-                <Tooltip />
+          <div
+            className="w-2.5 h-2.5 rounded-full"
+            style={{
+              backgroundColor: item.color
+            }}
+          />
 
-              </PieChart>
+          <span className="text-slate-600 font-medium">
+            {item.name}
+          </span>
 
-            </ResponsiveContainer>
+        </div>
 
-          </div>
+        <span className="font-bold text-slate-900">
+          {item.value}%
+        </span>
 
-          <div className="space-y-3 pt-2">
+      </div>
 
-            <div className="p-3 rounded-xl bg-slate-50">
+    ))}
 
-              <p className="text-sm font-medium text-slate-700">
-                Instagram Post Submitted
-              </p>
+  </div>
 
-              <span className="text-xs text-slate-400">
-                2 mins ago
-              </span>
+</div>
 
-            </div>
+          <div className="bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
 
-            <div className="p-3 rounded-xl bg-slate-50">
+  <h3 className="text-sm font-bold text-slate-800 mb-5">
+    Recent Activity
+  </h3>
 
-              <p className="text-sm font-medium text-slate-700">
-                Reel Approved
-              </p>
+  <div className="space-y-3">
 
-              <span className="text-xs text-slate-400">
-                1 hour ago
-              </span>
+    {activities.map((activity, index) => (
 
-            </div>
+      <div
+        key={index}
+        className="flex flex-col gap-1 border-b border-slate-100 pb-3"
+      >
+
+        <span className="text-sm font-medium text-slate-700">
+          {activity.message}
+        </span>
+
+        <span className="text-xs text-slate-400">
+          {new Date(
+            activity.createdAt
+          ).toLocaleString()}
+        </span>
+
+      </div>
+
+    ))}
+
+  </div>
+
+</div>
+
+
 
             {
               role === "TEAM_LEADER" && (
@@ -297,9 +533,9 @@ const UserDashboard = () => {
 
         </div>
 
-      </div>
+    
 
-    </div>
+  
 
   );
 };
