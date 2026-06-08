@@ -2,8 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import AuthPage from "./pages/AuthPage";
 import ForgotPassword from "./pages/ForgotPassword";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Toaster } from "react-hot-toast";
@@ -17,6 +16,7 @@ import ContentPage from "./pages/content/ContentPage";
 import ContentDatePage from "./pages/content/ContentDatePage";
 import ContentDetailsPage from "./pages/content/ContentDetailsPage";
 import PendingApprovalsPage from "./pages/content/PendingApprovalsPage";
+import EditContentPage from "./pages/content/EditContentPage";
 
 const MainLayout = () => (
   <div className="min-h-screen bg-slate-50 flex">
@@ -59,9 +59,8 @@ function App() {
       
       <Router>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Navigate to="/auth" replace />} />
+          <Route path="/auth" element={<AuthPage />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
         
@@ -97,6 +96,11 @@ function App() {
 <Route
   path="/pending-approvals"
   element={<PendingApprovalsPage />}
+/>
+
+<Route
+  path="/content/edit/:id"
+  element={<EditContentPage />}
 />
             <Route path="/settings" element={<h1>Settings Page</h1>} />
           </Route>

@@ -29,7 +29,7 @@ const TeamsPage = () => {
       const { data } = await API.get('/teams/my-team');
 
       if (data) {
-        setTeams([data]);
+        setTeams(data || []);
       } else {
         setTeams([]);
       }

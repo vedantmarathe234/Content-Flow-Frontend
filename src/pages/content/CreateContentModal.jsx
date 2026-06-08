@@ -4,63 +4,50 @@ import API from "../../services/api";
 import { toast } from "react-hot-toast";
 import { createContent } from "../../services/contentService";
 
-const CreateContentModal = ({ isOpen, onClose, onRefresh }) => {
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    contentType: "INDIVIDUAL",
-    departmentId: null,
-    teamId: null,
-    uploadProvider: "DRIVE",
-    googleDriveLink: "",
-    scheduledDate: ""
-  });
+const CreateContentModal = ({ isOpen, onClose, onRefresh,selectedDate }) => {
+const [formData, setFormData] = useState({
+  title: "",
+  description: "",
+  contentType: "INDIVIDUAL",
+  departmentId: null,
+  teamId: null,
+  uploadProvider: "DRIVE",
+  googleDriveLink: "",
+  scheduledDate: selectedDate || ""
+});
 
-  const [departments, setDepartments] = useState([]);
+const [sourceSelected, setSourceSelected] = useState(false);
+
+useEffect(() => {
+  if (selectedDate) {
+    setFormData(prev => ({
+      ...prev,
+      scheduledDate: selectedDate
+    }));
+  }
+}, [selectedDate]);
+
   const [teams, setTeams] = useState([]);
   const [file, setFile] = useState(null);
 
   useEffect(() => {
-    fetchDepartments();
-  }, []);
+  fetchTeams();
+}, []);
 
-  const fetchDepartments = async () => {
-    try {
-      const res = await API.get("/departments/all");
+const fetchTeams = async () => {
+  try {
+    const { data } = await API.get("/teams/my-team");
 
-      setDepartments(
-        res.data.map((dept) => ({
-          value: dept.id,
-          label: dept.name,
-        }))
-      );
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const handleDepartmentChange = async (selected) => {
-    setFormData((prev) => ({
-      ...prev,
-      departmentId: selected.value,
-      teamId: null,
-    }));
-
-    try {
-      const res = await API.get(
-        `/teams/department/${selected.value}`
-      );
-
-      setTeams(
-        res.data.map((team) => ({
-          value: team.id,
-          label: team.name,
-        }))
-      );
-    } catch (error) {
-      console.error(error);
-    }
-  };
+    setTeams(
+      data.map(team => ({
+        value: team.id,
+        label: `${team.name} (${team.departmentName})`
+      }))
+    );
+  } catch (error) {
+    console.error(error);
+  }
+};
 
  const handleSubmit = async (e) => {
   e.preventDefault();
@@ -293,31 +280,9 @@ text-sm"
           </div>
 
          {formData.contentType === "TEAM" && (
-  <div className="grid grid-cols-2 gap-3">
+  <div className="grid grid gap-3">
 
-    <div>
-      <label
-        className="
-        block
-        text-xs
-        font-bold
-        text-slate-500
-        uppercase
-        mb-1
-        "
-      >
-        Department
-      </label>
-
-      <Select
-        options={departments}
-        styles={customStyles}
-        menuPortalTarget={document.body}
-        onChange={handleDepartmentChange}
-        placeholder="Select Department"
-      />
-    </div>
-
+  
     <div>
       <label
         className="
@@ -350,108 +315,79 @@ text-sm"
 )}
 
 
-          <div>
-  <label className="block
-text-xs
-font-bold
-text-slate-500
-uppercase
-mb-1">
-    Upload Provider
+    <div>
+  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
+    Media Source
   </label>
 
-  <select
-    className="w-full
-p-2
-border
-border-slate-200
-rounded-lg
-focus:ring-2
-focus:ring-blue-500
-outline-none
-transition-all
-text-sm"
-    value={formData.uploadProvider}
-    onChange={(e) =>
-      setFormData({
-        ...formData,
-        uploadProvider: e.target.value,
-      })
-    }
-  >
-    <option value="DRIVE">
-      Google Drive Link
-    </option>
-
-    <option value="CLOUDNARY">
-      Upload File
-    </option>
-  </select>
-</div>
-
-
-          {formData.uploadProvider === "DRIVE" ? (
-
-  <div>
-    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">
-      Google Drive Link
-    </label>
-
-    <input
-      type="text"
-      className="w-full
-p-2
-border
-border-slate-200
-rounded-lg
-focus:ring-2
-focus:ring-blue-500
-outline-none
-transition-all
-text-sm"
-      value={formData.googleDriveLink}
-      onChange={(e) =>
+  {!sourceSelected ? (
+    <select
+      className="w-full p-2 border rounded-lg"
+      onChange={(e) => {
         setFormData({
           ...formData,
-          googleDriveLink: e.target.value,
-        })
-      }
-    />
-  </div>
+          uploadProvider: e.target.value,
+        });
 
-) : (
+        setSourceSelected(true);
+      }}
+      defaultValue=""
+    >
+      <option value="" disabled>
+        Select Media Source
+      </option>
 
-  <div>
-    <label className="block
-text-xs
-font-bold
-text-slate-500
-uppercase
-mb-1">
-      Upload File
-    </label>
+      <option value="DRIVE">
+        Google Drive
+      </option>
 
-    <input
-      type="file"
-      className="
-w-full
-p-2
-border
-border-slate-200
-rounded-lg
-focus:ring-2
-focus:ring-blue-500
-outline-none
-transition-all
-text-sm
-"
-      onChange={(e) =>
-        setFile(e.target.files[0])
-      }
-    />
-  </div>
+      <option value="CLOUDNARY">
+        Upload File
+      </option>
+    </select>
+  ) : formData.uploadProvider === "DRIVE" ? (
+    <>
+      <input
+        type="text"
+        placeholder="Paste Google Drive Link"
+        className="w-full p-2 border rounded-lg"
+        value={formData.googleDriveLink}
+        onChange={(e) =>
+          setFormData({
+            ...formData,
+            googleDriveLink: e.target.value,
+          })
+        }
+      />
 
-)}
+      <button
+        type="button"
+        className="text-blue-600 text-sm mt-2"
+        onClick={() => setSourceSelected(false)}
+      >
+        Change Source
+      </button>
+    </>
+  ) : (
+    <>
+      <input
+        type="file"
+        className="w-full p-2 border rounded-lg"
+        onChange={(e) =>
+          setFile(e.target.files[0])
+        }
+      />
+
+      <button
+        type="button"
+        className="text-blue-600 text-sm mt-2"
+        onClick={() => setSourceSelected(false)}
+      >
+        Change Source
+      </button>
+    </>
+  )}
+</div>
 
           <div>
             <label className="block

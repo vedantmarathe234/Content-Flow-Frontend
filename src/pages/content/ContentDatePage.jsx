@@ -4,6 +4,7 @@ import { getAllContent } from "../../services/contentService";
 import StatusBadge from "./StatusBadge";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import CreateContentModal from "./CreateContentModal";
 
 const ContentDatePage = () => {
     const navigate = useNavigate();
@@ -12,6 +13,7 @@ const ContentDatePage = () => {
 
   const [contents, setContents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     fetchContent();
@@ -38,6 +40,16 @@ const ContentDatePage = () => {
     return <div>Loading...</div>;
   }
 
+  const today = new Date().toISOString().split("T")[0];
+
+const isPastDate = date < today;
+
+
+const role = localStorage.getItem("role");
+
+const canCreateContent =
+  role === "INTERN" || role === "TEAM_LEADER";
+
   return (
     <div className="w-full font-sans text-slate-800">
 
@@ -63,6 +75,37 @@ const ContentDatePage = () => {
 <p className="text-slate-500 mb-6">
   {date}
 </p>
+
+
+{canCreateContent && (
+  <>
+    {isPastDate && (
+      <p className="text-red-500 mb-4">
+        You cannot create content for past dates.
+      </p>
+    )}
+
+    <div className="flex justify-between items-center mb-6">
+      <button
+        onClick={() => setShowCreateModal(true)}
+        disabled={isPastDate}
+        className={`
+          px-4
+          py-2
+          rounded-lg
+          text-white
+          ${
+            isPastDate
+              ? "bg-slate-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          }
+        `}
+      >
+        + Create Content
+      </button>
+    </div>
+  </>
+)}
 
       {contents.length === 0 ? (
 
@@ -139,6 +182,13 @@ const ContentDatePage = () => {
         </div>
 
       )}
+
+      <CreateContentModal
+  isOpen={showCreateModal}
+  onClose={() => setShowCreateModal(false)}
+  onRefresh={fetchContent}
+  selectedDate={date}
+/>
 
     </div>
   );

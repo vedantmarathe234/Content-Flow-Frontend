@@ -2,17 +2,15 @@ import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Building2, Users, Clock, CheckSquare, UserCheck, FileText, CheckCircle, PlusCircle } from 'lucide-react';
 
+import { useEffect, useState } from "react";
+import { getDashboardStats }
+from "../../services/contentService";
+
 const activityData = [
   { name: 'Mon', count: 10 }, { name: 'Tue', count: 18 }, { name: 'Wed', count: 12 },
   { name: 'Thu', count: 25 }, { name: 'Fri', count: 15 }, { name: 'Sat', count: 32 }, { name: 'Sun', count: 28 }
 ];
 
-const statusData = [
-  { name: 'Approved', value: 66, color: '#3b82f6' },
-  { name: 'Pending', value: 15, color: '#2dd4bf' },
-  { name: 'Rejected', value: 10, color: '#f87171' },
-  { name: 'Draft', value: 9, color: '#fbbf24' },
-];
 
 const topDepartments = [
   { name: 'Graphic Design', count: 45 }, { name: 'Digital Marketing', count: 38 },
@@ -26,6 +24,65 @@ const recentActivity = [
 ];
 
 const AdminDashboard = () => {
+
+  const [stats, setStats] = useState(null);
+
+useEffect(() => {
+  fetchDashboardStats();
+}, []);
+
+const fetchDashboardStats = async () => {
+  try {
+
+    const response =
+      await getDashboardStats();
+
+    setStats(response.data);
+
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+if (!stats) {
+  return <div>Loading...</div>;
+}
+
+const total =
+  stats.approved +
+  stats.rejected +
+  stats.pendingLeader +
+  stats.pendingAdmin;
+
+const statusData = [
+  {
+    name: "Approved",
+    value:
+      total > 0
+        ? Math.round((stats.approved * 100) / total)
+        : 0,
+    color: "#3b82f6"
+  },
+  {
+    name: "Pending",
+    value:
+      total > 0
+        ? Math.round(
+            ((stats.pendingLeader + stats.pendingAdmin) * 100) / total
+          )
+        : 0,
+    color: "#f59e0b"
+  },
+  {
+    name: "Rejected",
+    value:
+      total > 0
+        ? Math.round((stats.rejected * 100) / total)
+        : 0,
+    color: "#ef4444"
+  }
+];
+
   return (
     <div className="space-y-6 p-2 bg-slate-50/50">
       <div className="mb-8">
@@ -34,11 +91,13 @@ const AdminDashboard = () => {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {[
-          { title: 'Total Departments', val: '8', icon: <Building2 size={20} />, bg: 'bg-blue-50 text-blue-600' },
-          { title: 'Total Teams', val: '24', icon: <Users size={20} />, bg: 'bg-teal-50 text-teal-600' },
-          { title: 'Pending Content', val: '18', icon: <Clock size={20} />, bg: 'bg-orange-50 text-orange-600' },
-          { title: 'Approved Content', val: '156', icon: <CheckSquare size={20} />, bg: 'bg-green-50 text-green-600' },
-          { title: 'Active Users', val: '62', icon: <UserCheck size={20} />, bg: 'bg-rose-50 text-rose-600' }
+          { title: 'Total Departments', val: stats.totalDepartments, icon: <Building2 size={20} />, bg: 'bg-blue-50 text-blue-600' },
+          { title: 'Total Teams', val: stats.totalTeams, icon: <Users size={20} />, bg: 'bg-teal-50 text-teal-600' },
+          { title: 'Pending Content', val:
+stats.pendingLeader +
+stats.pendingAdmin, icon: <Clock size={20} />, bg: 'bg-orange-50 text-orange-600' },
+          { title: 'Approved Content', val: stats.approved, icon: <CheckSquare size={20} />, bg: 'bg-green-50 text-green-600' },
+          { title: 'Active Users', val: stats.totalUsers, icon: <UserCheck size={20} />, bg: 'bg-rose-50 text-rose-600' }
         ].map((card, i) => (
           <div key={i} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
             <div>

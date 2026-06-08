@@ -80,6 +80,11 @@ const monthDays = eachDayOfInterval({
   start: startOfMonth(currentDate),
   end: endOfMonth(currentDate),
 });
+
+
+const today = format(new Date(), "yyyy-MM-dd");
+
+
 return (
   <div>
 
@@ -98,12 +103,16 @@ return (
         </p>
       </div>
 
-    <button
-  onClick={() => setShowCreateModal(true)}
-  className="px-4 py-2 bg-blue-600 text-white rounded-lg"
->
-  Add Content
-</button>   
+  {["INTERN", "TEAM_LEADER"].includes(
+  localStorage.getItem("role")
+) && (
+  <button
+    onClick={() => setShowCreateModal(true)}
+    className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+  >
+    Add Content
+  </button>
+)}
 
     </div>
     <div className="flex items-center gap-3 mb-6">
@@ -158,10 +167,12 @@ return (
       <div className="grid grid-cols-7 bg-[#EEF5FF] border-b border-[#D9E5F4]">
 
         {calendarDays.map((day) => {
+          
 
   const dateString = format(day, "yyyy-MM-dd");
+  const isToday = dateString === today;
   const items = groupedContent[dateString] || [];
-    const selectedContents =
+  const selectedContents =
   groupedContent[selectedDate] || [];
 
   const isCurrentMonth = isSameMonth(day, currentMonth);
@@ -192,13 +203,34 @@ return (
     >
 
 <div
-  className={`font-medium mb-2 ${
-    isCurrentMonth
-      ? "text-slate-900"
-      : "text-slate-400 opacity-60"
-  }`}
+  className={`
+    mb-2
+    font-medium
+    ${
+      isCurrentMonth
+        ? "text-slate-900"
+        : "text-slate-400 opacity-60"
+    }
+  `}
 >
-  {format(day, "d")}
+  <span
+  className={`
+    flex
+    items-center
+    justify-center
+    w-8
+    h-8
+    rounded-full
+    transition-all
+    ${
+      isToday
+        ? "bg-blue-600 text-white font-bold shadow-md"
+        : ""
+    }
+  `}
+>
+    {format(day, "d")}
+  </span>
 </div>
 
 {items.slice(0, 3).map((content) => (
