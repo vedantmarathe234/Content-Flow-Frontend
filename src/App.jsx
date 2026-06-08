@@ -17,6 +17,7 @@ import ContentDatePage from "./pages/content/ContentDatePage";
 import ContentDetailsPage from "./pages/content/ContentDetailsPage";
 import PendingApprovalsPage from "./pages/content/PendingApprovalsPage";
 import EditContentPage from "./pages/content/EditContentPage";
+import Settings from "./pages/Settings";
 
 const MainLayout = () => (
   <div className="min-h-screen bg-slate-50 flex">
@@ -75,9 +76,9 @@ function App() {
             <Route path="/admin/create-department" element={<CreateDepartment />}/>
             <Route path="/admin/department/:id" element={<DepartmentDetails />} />
             <Route path="/user/dashboard" element={<UserDashboard />} />
-            <Route path="/departments" element={<h1>Departments Page</h1>} />
-              <Route path="/admin/teams" element={<TeamsPage />} />
-              <Route path="/user/teams" element={<TeamsPage />} />
+            <Route path="/admin/teams" element={<TeamsPage />} />
+            <Route path="/user/teams" element={<TeamsPage />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="/teams" element={<h1>Teams Page</h1>} />
             <Route path="/users" element={<h1>Users Page</h1>} />
             <Route path="/approvals" element={<h1>Approvals Page</h1>} />
@@ -103,6 +104,8 @@ function App() {
   element={<EditContentPage />}
 />
             <Route path="/settings" element={<h1>Settings Page</h1>} />
+            <Route path="/content" element={<h1>Content Page</h1>} />
+            
           </Route>
         </Routes>
       </Router>

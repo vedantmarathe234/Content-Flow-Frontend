@@ -154,7 +154,7 @@ const CreateDepartment = () => {
                                     onClick={() => navigate(`/admin/department/${dept.id}`)}
                                 >
                                     <td className="py-4 px-6 text-slate-900 font-semibold">{dept.name}</td>
-                                    <td className="py-4 px-6 font-mono text-xs text-slate-500 uppercase tracking-wide">{dept.secretKey || "N/A"}</td>
+                                    <td className="py-4 px-6 font-mono text-xs text-slate-500 tracking-wide">{dept.secretKey || "N/A"}</td>
                                     <td className="py-4 px-6 text-slate-500">{dept.teamsCount}</td>
                                     <td className="py-4 px-6 text-slate-500">{dept.internCount}</td>
                                     <td className="py-4 px-6 text-center" onClick={(e) => e.stopPropagation()}>
