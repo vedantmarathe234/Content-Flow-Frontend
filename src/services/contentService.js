@@ -52,7 +52,14 @@ export const updateContent = (
   API.get("/content/dashboard/stats");
 
   export const getMyDashboardStats = () =>
-  API.get("/content/dashboard/my-stats")
+  API.get("/content/dashboard/my-stats");
 
   export const getTeamDashboardStats = (teamId) =>
   API.get(`/content/dashboard/team/${teamId}`);
+
+export const getContentByTeamId = (teamId) => {
+  return API.get(`/content/team/${teamId}/list`);
+};
+  export const getMyContents = () => {
+  return API.get("/content/my");
+};

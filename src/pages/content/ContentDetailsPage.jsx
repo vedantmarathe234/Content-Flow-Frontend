@@ -1,652 +1,255 @@
-import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { useEffect, useState } from "react";
-import {
-  getAllContent,
-  leaderApprove,
-  leaderReject,
-  deleteContent
-} from "../../services/contentService";
+import { X, Trash2, Edit3, ExternalLink, CheckCircle, XCircle } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { getAllContent, leaderApprove, deleteContent } from "../../services/contentService";
 import StatusBadge from "./StatusBadge";
 import { toast } from "react-hot-toast";
 import API from "../../services/api";
-import { markNotificationsByContent }
-from "../../services/notificationService";
+import { markNotificationsByContent } from "../../services/notificationService";
+import EditContentModal from "./EditContentModal";
 
-
-
-const ContentDetailsPage = () => {
+const ContentDetailsPage = ({ id, onClose, onRefresh }) => {
   const [loading, setLoading] = useState(true);
   const [content, setContent] = useState(null);
-  const [showRejectModal, setShowRejectModal] =
-  useState(false);
-
-const [rejectReason, setRejectReason] =
-  useState("");
-
-  const [showLeaderRejectModal, setShowLeaderRejectModal] =
-  useState(false);
-
-const [leaderRejectReason, setLeaderRejectReason] =
-  useState("");
-  
-
-  const [showDeleteModal, setShowDeleteModal] =
-  useState(false);
-
-
-  const { id } = useParams();
-  const navigate = useNavigate();
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const [showLeaderRejectModal, setShowLeaderRejectModal] = useState(false);
+  const [leaderRejectReason, setLeaderRejectReason] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const role = localStorage.getItem("role");
- const currentUserId =
-  Number(localStorage.getItem("userId"));
+  const currentUserId = localStorage.getItem("userId") ? Number(localStorage.getItem("userId")) : null;
 
- const canEdit =
-  content?.createdById === currentUserId &&
-  content?.status !== "APPROVED";
  
-useEffect(() => {
-
-  fetchContent();
-
-  markNotificationsByContent(id)
-    .then(() => {
-      window.dispatchEvent(
-        new Event("notificationsUpdated")
-      );
-    })
-    .catch(console.error);
-
-}, [id]);
-
-
-  const fetchContent = async () => {
+  const fetchContent = useCallback(async () => {
     try {
+      setLoading(true);
       const response = await getAllContent();
-
-      const foundContent = response.data.find((item) => item.id === Number(id));
-
+     
+      const foundContent = response.data.find((item) => Number(item.id) === Number(id));
       setContent(foundContent);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+    } catch (error) { 
+      console.error(error); 
+      toast.error("Failed to fetch content details");
+    } finally { 
+      setLoading(false); 
+    }
+  }, [id]);
+
+  useEffect(() => {
+    if (id) {
+      fetchContent();
+      markNotificationsByContent(id).catch(console.error);
+    }
+  }, [id, fetchContent]);
+
+  const handleLeaderApprove = async () => { 
+    try { 
+      await leaderApprove(id); 
+      toast.success("Approved by Leader"); 
+      fetchContent(); 
+      onRefresh?.(); 
+    } catch (e) { 
+      toast.error("Failed to approve"); 
+    } 
+  };
+
+  const handleAdminApprove = async () => { 
+    try { 
+      await API.put(`/content/${id}/approve`); 
+      toast.success("Approved by Admin"); 
+      fetchContent(); 
+      onRefresh?.(); 
+    } catch (e) { 
+      toast.error("Failed to approve"); 
+    } 
+  };
+
+  const handleLeaderReject = async () => { 
+    if (!leaderRejectReason.trim()) return toast.error("Enter reason"); 
+    try {
+      await API.put(`/content/${id}/leader-reject`, { reason: leaderRejectReason }); 
+      toast.success("Rejected by Leader"); 
+      setShowLeaderRejectModal(false); 
+      setLeaderRejectReason(""); 
+      fetchContent(); 
+      onRefresh?.(); 
+    } catch (e) {
+      toast.error("Failed to reject");
     }
   };
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  const handleAdminReject = async () => { 
+    if (!rejectReason.trim()) return toast.error("Enter reason"); 
+    try {
+      await API.put(`/content/${id}/reject`, { reason: rejectReason }); 
+      toast.success("Rejected by Admin"); 
+      setShowRejectModal(false); 
+      setRejectReason(""); 
+      fetchContent(); 
+      onRefresh?.(); 
+    } catch (e) {
+      toast.error("Failed to reject");
+    }
+  };
 
-  if (!content) {
-    return <div>Content not found</div>;
-  }
+const handleDelete = async () => { 
+    if (!canDelete) {
+      toast.error("You cannot delete this content at this stage");
+      return;
+    }
 
+    try {
+      await deleteContent(id); 
+      toast.success("Deleted successfully"); 
+      setShowDeleteModal(false); 
+      onClose(); 
+      onRefresh?.(); 
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Failed to delete content");
+    }
+  };
 
+  if (loading) return <div className="fixed inset-0 flex items-center justify-center bg-white/50 z-[110]">Loading...</div>;
+  if (!content) return null;
 
-
- const showLeaderApproval =
-  content.status === "PENDING_LEADER" &&
-  content.teamLeaderId === currentUserId;
-
-const showAdminApproval =
-  role === "ADMIN" &&
-  content.status === "PENDING";
-
-  const handleLeaderApprove = async () => {
-  try {
-    await leaderApprove(content.id);
-
-    toast.success("Approved Successfully");
-
-    fetchContent();
-  } catch (error) {
-    console.log(error);
-    console.log(error.response);
-
-    toast.error("Failed to approve");
-  }
-};
-
-
-
-const handleLeaderReject = async () => {
-
-  if (!leaderRejectReason.trim()) {
-    toast.error("Please enter rejection reason");
-    return;
-  }
-
-  try {
-
-    await API.put(
-      `/content/${id}/leader-reject`,
-      {
-        reason: leaderRejectReason,
-      }
-    );
-
-    toast.success("Content rejected");
-
-    setShowLeaderRejectModal(false);
-    setLeaderRejectReason("");
-
-    fetchContent();
-
-  } catch (error) {
-    toast.error("Failed to reject");
-  }
-};
-
-const handleAdminApprove = async () => {
-  try {
-    await API.put(`/content/${id}/approve`);
-    toast.success("Content approved successfully");
-    fetchContent();
-  } catch (error) {
-    toast.error("Failed to approve content");
-  }
-};
-
-const handleAdminReject = async () => {
-
-  if (!rejectReason.trim()) {
-    toast.error("Please enter rejection reason");
-    return;
-  }
-
-  try {
-
-    await API.put(`/content/${id}/reject`, {
-      reason: rejectReason,
-    });
-
-    toast.success("Content rejected");
-
-    setShowRejectModal(false);
-    setRejectReason("");
-
-    fetchContent();
-
-  } catch (error) {
-    toast.error("Failed to reject content");
-  }
-};
-
-const handleDelete = async () => {
-
-  try {
-
-    await deleteContent(id);
-
-    toast.success(
-      "Content deleted successfully"
-    );
-
-    navigate("/content");
-
-  } catch (error) {
-
-
-  toast.error(
-    error.response?.data?.message ||
-    "Failed to delete content"
-  );
-}
-};
-
-console.log("Status:", content.status);
-console.log("Team Leader ID:", content.teamLeaderId);
-console.log("Current User ID:", currentUserId);
-
+  const canEdit = content.createdById === currentUserId && content.status !== "APPROVED";
+  const showLeaderApproval = content.status === "PENDING_LEADER" && content.teamLeaderId === currentUserId;
+  const showAdminApproval = role === "ADMIN" && content.status === "PENDING";
+  const isCreator = content.createdById === currentUserId && content.status !== "APPROVED";
+  const isAdminAllowedToDelete = role === "ADMIN" && (content.status === "PENDING" || content.status === "REJECTED");
+  const canDelete = isCreator || isAdminAllowedToDelete;
+  
 
   return (
-    <div className="w-full font-sans text-slate-800">
-      <div className="flex items-center gap-4 mb-6">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 hover:bg-slate-100 rounded-full"
-        >
-          <ArrowLeft size={20} />
-        </button>
+    <div className="fixed inset-0 z-[100] flex justify-end bg-black/40 backdrop-blur-sm">
+      <div className="w-full max-w-lg bg-white h-full shadow-2xl overflow-y-auto p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold">Content Details</h2>
+          <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full"><X size={20} /></button>
+        </div>
 
-        <h1 className="text-2xl font-bold">Content Details</h1>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-xl font-bold">Content Title : {content.title}</h1>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <InfoItem label="Created By" value={content.createdBy} />
+            <InfoItem label="Uploaded By" value={content.team} />
+            <InfoItem label="Scheduled Date" value={content.scheduledDate} />
+            <InfoItem label="Created At" value={new Date(content.createdAt).toLocaleString()} />
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-lg">
+            <p className="text-xs font-bold text-slate-400 uppercase">Description</p>
+            <p className="text-slate-700 mt-1">{content.description}</p>
+          </div>
+
+          {content.rejectionReason && (
+            <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+              <p className="text-xs font-bold text-red-500 uppercase">Rejection Reason</p>
+              <p className="text-red-700">{content.rejectionReason}</p>
+            </div>
+          )}
+
+          <div className="border-t pt-4">
+            <h3 className="font-bold text-lg mb-3">Approval Workflow</h3>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <InfoItem label="Current Stage" value={content.currentStage} />
+              <InfoItem label="Department" value={content.department} />
+              <InfoItem label="Leader Approval" value={content.approvedByLeader || "N/A"} />
+              <InfoItem label="Admin Approval" value={content.approvedByAdmin || "N/A"} />
+              <InfoItem label="Status" value={<StatusBadge status={content.status} />} />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 space-y-3">
+          <div className="flex gap-2">
+            <button onClick={() => window.open(content.mediaUrl, "_blank")} className="flex-1 py-2 bg-blue-600 text-white rounded-lg flex items-center justify-center gap-2">
+              <ExternalLink size={16} /> View Content
+            </button>
+            {canEdit && (
+              <button onClick={() => setShowEditModal(true)} className="flex-1 py-2 bg-amber-500 text-white rounded-lg flex items-center justify-center gap-2">
+                <Edit3 size={16} /> Edit
+              </button>
+            )}
+          </div>
+
+          {(showLeaderApproval || showAdminApproval) && (
+            <div className="grid grid-cols-2 gap-2">
+              <button onClick={showLeaderApproval ? handleLeaderApprove : handleAdminApprove} className="py-2 bg-green-600 text-white rounded-lg font-semibold flex items-center justify-center gap-1">
+                <CheckCircle size={16} /> Approve
+              </button>
+              <button onClick={() => showLeaderApproval ? setShowLeaderRejectModal(true) : setShowRejectModal(true)} className="py-2 bg-red-600 text-white rounded-lg font-semibold flex items-center justify-center gap-1">
+                <XCircle size={16} /> Reject
+              </button>
+            </div>
+          )}
+
+          {canDelete && (
+            <button onClick={() => setShowDeleteModal(true)} className="w-full py-2 text-red-600 font-semibold flex items-center justify-center gap-2 border border-red-100 rounded-lg hover:bg-red-50 transition-all">
+              <Trash2 size={16} /> Delete Content
+            </button>
+          )}
+        </div>
       </div>
-
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-5">
-          <div
-            className="
-            bg-white
-            rounded-xl
-            border
-            border-slate-200
-            shadow-sm
-            p-6
-            "
-          >
-            <h2 className="text-xl font-bold mb-4">{content.title}</h2>
-
-            <div className="space-y-5">
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase">
-                  Content ID
-                </p>
-                <p>{id}</p>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase">
-                  Description
-                </p>
-                <p>{content.description}</p>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase">
-                  Created By
-                </p>
-                <p>{content.createdBy}</p>
-              </div>
-
-              {content.team && (
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase">
-                    Uploaded by
-                  </p>
-                  <p>{content.team}</p>
-                </div>
-              )}
-
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase">
-                  Scheduled Date
-                </p>
-                <p>{content.scheduledDate}</p>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase">
-                  Created At
-                </p>
-
-                <p>{new Date(content.createdAt).toLocaleString()}</p>
-              </div>
-
-              {content.rejectionReason && (
-                <div>
-                  <p className="text-xs font-bold text-red-400 uppercase">
-                    Rejection Reason
-                  </p>
-
-                  <p className="text-red-600">{content.rejectionReason}</p>
-                </div>
-              )}
-
-              <div className="flex gap-2 mt-2">
-
-  <button
-    onClick={() => window.open(content.mediaUrl, "_blank")}
-    className="
-      px-4
-      py-2
-      bg-blue-600
-      text-white
-      rounded-lg
-      hover:bg-blue-700
-    "
-  >
-    View Content
-  </button>
-
-  {canEdit && (
-    <button
-      onClick={() =>
-        navigate(`/content/edit/${id}`)
-      }
-      className="
-        px-4
-        py-2
-        bg-amber-500
-        text-white
-        rounded-lg
-        hover:bg-amber-600
-      "
-    >
-      Edit Content
-    </button>
-  )}
-
-</div>
-
 
       
+      {(showRejectModal || showLeaderRejectModal) && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <h3 className="font-bold text-lg mb-4">Reject Content</h3>
+            <textarea 
+              rows={4} 
+              className="w-full border border-slate-200 rounded-lg p-3 mb-4 outline-none focus:ring-2 focus:ring-red-500/20" 
+              placeholder="Reason..." 
+              value={showLeaderRejectModal ? leaderRejectReason : rejectReason} 
+              onChange={(e) => showLeaderRejectModal ? setLeaderRejectReason(e.target.value) : setRejectReason(e.target.value)} 
+            />
+            <div className="flex gap-2">
+              <button onClick={() => {setShowRejectModal(false); setShowLeaderRejectModal(false)}} className="flex-1 py-2 border rounded-lg font-semibold">Cancel</button>
+              <button onClick={showLeaderRejectModal ? handleLeaderReject : handleAdminReject} className="flex-1 py-2 bg-red-600 text-white rounded-lg font-semibold">Reject</button>
             </div>
           </div>
         </div>
+      )}
 
-        <div className="col-span-5">
-          <div
-            className="
-      bg-white
-      rounded-xl
-      border
-      border-slate-200
-      shadow-sm
-      p-6
-    "
-          >
-            <h3 className="font-bold text-lg mb-4">Approval Workflow</h3>
-
-            <div className="space-y-5">
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase">
-                  Current Stage
-                </p>
-
-                <p>{content.currentStage}</p>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase">
-                  Leader Approval
-                </p>
-
-                <p>{content.approvedByLeader}</p>
-              </div>
-
-              <div>
-  <p className="text-xs font-bold text-slate-400 uppercase">
-    Admin Approval
-  </p>
-
-  <p>{content.approvedByAdmin}</p>
-</div>
-
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase">
-                  Department
-                </p>
-
-                <p>{content.department}</p>
-              </div>
-
-              <div>
-                <p className="text-xs font-bold text-slate-400 uppercase">
-                  Status
-                </p>
-                <StatusBadge status={content.status} />
-              </div>
-
-              <div>
-  <p className="text-xs font-bold text-slate-400 uppercase">
-    Actions
-  </p>
-
-  <div className="mt-4">
-  <button
-    onClick={() =>
-      setShowDeleteModal(true)
-    }
-    className="
-      px-4
-      py-2
-      bg-red-600
-      text-white
-      rounded-lg
-    "
-  >
-    Delete Content
-  </button>
-</div>
-
-  {showLeaderApproval && (
-    <div className="flex gap-2 mt-3">
-     <button
-  onClick={handleLeaderApprove}
-  className="px-4 py-2 bg-green-600 text-white rounded-lg"
->
-  Approve
-</button>
-
-   <button
-  onClick={() => setShowLeaderRejectModal(true)}
-  className="px-4 py-2 bg-red-600 text-white rounded-lg"
->
-  Reject
-</button>
-    </div>
-  )}
-{showAdminApproval && (
-  <div className="flex gap-2 mt-3">
-    <button
-      onClick={handleAdminApprove}
-      className="px-4 py-2 bg-green-600 text-white rounded-lg"
-    >
-      Final Approve
-    </button>
-
-    <button
-  onClick={() => setShowRejectModal(true)}
-  className="px-4 py-2 bg-red-600 text-white rounded-lg"
->
-  Reject
-</button>
-  </div>
-)}
-</div>
-              </div>
+      
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+            <h3 className="font-bold text-lg">Delete Content</h3>
+            <p className="my-4 text-slate-600">Are you sure you want to delete this content?</p>
+            <div className="flex gap-2">
+              <button onClick={() => setShowDeleteModal(false)} className="flex-1 py-2 border rounded-lg font-semibold">Cancel</button>
+              <button onClick={handleDelete} className="flex-1 py-2 bg-red-600 text-white rounded-lg font-semibold">Delete</button>
             </div>
           </div>
         </div>
+      )}
 
-        {showRejectModal && (
-  <div
-    className="
-    fixed
-    inset-0
-    bg-black/50
-    flex
-    items-center
-    justify-center
-    z-50
-    "
-  >
-    <div
-      className="
-      bg-white
-      rounded-xl
-      p-6
-      w-[500px]
-      "
-    >
-      <h3 className="text-lg font-bold mb-4">
-        Reject Content
-      </h3>
-
-      <textarea
-        rows={5}
-        placeholder="Enter rejection reason..."
-        value={rejectReason}
-        onChange={(e) =>
-          setRejectReason(e.target.value)
-        }
-        className="
-        w-full
-        border
-        rounded-lg
-        p-3
-        "
-      />
-
-      <div className="flex gap-3 mt-4">
-        <button
-          onClick={() =>
-            setShowRejectModal(false)
-          }
-          className="
-          flex-1
-          border
-          rounded-lg
-          py-2
-          "
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={handleAdminReject}
-          className="
-          flex-1
-          bg-red-600
-          text-white
-          rounded-lg
-          py-2
-          "
-        >
-          Reject
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-{showLeaderRejectModal && (
-  <div
-    className="
-    fixed inset-0
-    bg-black/50
-    flex items-center justify-center
-    z-50
-    "
-  >
-    <div
-      className="
-      bg-white
-      rounded-xl
-      p-6
-      w-[500px]
-      "
-    >
-      <h3 className="text-lg font-bold mb-4">
-        Reject Content
-      </h3>
-
-      <textarea
-        rows={5}
-        value={leaderRejectReason}
-        onChange={(e) =>
-          setLeaderRejectReason(e.target.value)
-        }
-        placeholder="Enter rejection reason..."
-        className="
-        w-full
-        border
-        rounded-lg
-        p-3
-        "
-      />
-
-      <div className="flex gap-3 mt-4">
-        <button
-          onClick={() =>
-            setShowLeaderRejectModal(false)
-          }
-          className="
-          flex-1
-          border
-          rounded-lg
-          py-2
-          "
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={handleLeaderReject}
-          className="
-          flex-1
-          bg-red-600
-          text-white
-          rounded-lg
-          py-2
-          "
-        >
-          Reject
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
-
-{showDeleteModal && (
-  <div
-    className="
-      fixed inset-0
-      bg-black/50
-      flex items-center
-      justify-center
-      z-50
-    "
-  >
-    <div
-      className="
-        bg-white
-        rounded-xl
-        p-6
-        w-[420px]
-      "
-    >
-      <h3 className="text-lg font-bold">
-        Delete Content
-      </h3>
-
-      <p className="mt-3 text-slate-600">
-        Are you sure you want to delete this
-        content?
-      </p>
-
-      <p className="text-red-600 mt-2">
-        This action cannot be undone.
-      </p>
-
-      <div className="flex gap-3 mt-6">
-        <button
-          onClick={() =>
-            setShowDeleteModal(false)
-          }
-          className="
-            flex-1
-            border
-            rounded-lg
-            py-2
-          "
-        >
-          Cancel
-        </button>
-
-        <button
-          onClick={handleDelete}
-          className="
-            flex-1
-            bg-red-600
-            text-white
-            rounded-lg
-            py-2
-          "
-        >
-          Delete
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-      </div>
     
+      {showEditModal && (
+        <EditContentModal
+          id={id}
+          onClose={() => setShowEditModal(false)}
+          onRefresh={() => {
+            fetchContent();
+            onRefresh?.();
+          }}
+        />
+      )}
+    </div>
   );
 };
+
+const InfoItem = ({ label, value }) => (
+  <div>
+    <p className="text-[10px] font-bold text-slate-400 uppercase">{label}</p>
+    <div className="text-slate-700 font-medium">{value}</div>
+  </div>
+);
 
 export default ContentDetailsPage;

@@ -2,10 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { toast } from "react-hot-toast";
 import { createContent } from "../../services/contentService";
 
-const CreateContentModal = ({ isOpen, onClose, onRefresh, selectedDate }) => {
+const TeamCreateContentModal = ({ isOpen, onClose, onRefresh, selectedDate, teamId, teamName }) => {
   const [formData, setFormData] = useState({
     title: "",
     description: "",
+    contentType: "TEAM",
+    teamId: teamId || null,
     uploadProvider: "DRIVE",
     googleDriveLink: "",
     scheduledDate: selectedDate || "",
@@ -13,9 +15,12 @@ const CreateContentModal = ({ isOpen, onClose, onRefresh, selectedDate }) => {
 
   const [file, setFile] = useState(null);
   const [showMenu, setShowMenu] = useState(false);
-  
   const fileInputRef = useRef(null);
   const menuRef = useRef(null);
+
+  useEffect(() => {
+    setFormData((prev) => ({ ...prev, teamId: teamId }));
+  }, [teamId]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -26,12 +31,6 @@ const CreateContentModal = ({ isOpen, onClose, onRefresh, selectedDate }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  useEffect(() => {
-    if (selectedDate) {
-      setFormData((prev) => ({ ...prev, scheduledDate: selectedDate }));
-    }
-  }, [selectedDate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,11 +43,9 @@ const CreateContentModal = ({ isOpen, onClose, onRefresh, selectedDate }) => {
 
     try {
       await createContent(multipartData);
-      toast.success("Content created successfully");
+      toast.success("Team content created successfully");
       onRefresh();
       onClose();
-      setFormData({ title: "", description: "", uploadProvider: "DRIVE", googleDriveLink: "", scheduledDate: selectedDate });
-      setFile(null);
     } catch (error) {
       toast.error("Failed to create content");
     }
@@ -60,9 +57,12 @@ const CreateContentModal = ({ isOpen, onClose, onRefresh, selectedDate }) => {
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
         
-        <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-slate-800">Create New Content</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition-colors text-xl font-bold">×</button>
+        <div className="px-6 py-4 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+          <div>
+            <h2 className="text-sm font-bold text-slate-800">Create New Content</h2>
+            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">TEAM: {teamName || "Loading..."}</p>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition-colors text-xl font-bold">✕</button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -100,7 +100,7 @@ const CreateContentModal = ({ isOpen, onClose, onRefresh, selectedDate }) => {
               <button
                 type="button"
                 onClick={() => setShowMenu(!showMenu)}
-                className="px-3 py-2 text-slate-400 hover:text-emerald-600 transition-colors"
+                className="px-3 py-2 text-slate-400 hover:text-emerald-600 transition-colors  border-slate-200"
               >
                 ▼
               </button>
@@ -132,4 +132,4 @@ const CreateContentModal = ({ isOpen, onClose, onRefresh, selectedDate }) => {
   );
 };
 
-export default CreateContentModal;
+export default TeamCreateContentModal;

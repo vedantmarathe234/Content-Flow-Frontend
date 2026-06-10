@@ -136,15 +136,15 @@ const CreateDepartment = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="bg-slate-50 text-slate-400 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200">
-                                <th className="py-3.5 px-6">Department Name</th>
-                                <th className="py-3.5 px-6">Secret Key</th>
-                                <th className="py-3.5 px-6">Teams</th>
-                                <th className="py-3.5 px-6">Members</th>
+                            <tr className="bg-slate-100 text-slate-400 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200">
+                                <th className="py-3.5 px-6 text-center">Department Name</th>
+                                <th className="py-3.5 px-6 text-center">Secret Key</th>
+                                <th className="py-3.5 px-6 text-center">Teams</th>
+                                <th className="py-3.5 px-6 text-center">Members</th>
                                 <th className="py-3.5 px-6 text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody className="text-sm divide-y divide-slate-100 text-slate-600 font-medium">
+                        <tbody className="text-sm divide-y divide-slate-100 text-slate-600 font-medium text-center">
                             {loading ? (
                                 <tr><td colSpan="5" className="p-8 text-center text-slate-400">Loading...</td></tr>
                             ) : departments.map((dept) => (
@@ -174,6 +174,7 @@ const CreateDepartment = () => {
                 </div>
             </div>
 
+            
             {isCreateOpen && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <form onSubmit={handleCreateSubmit} className="bg-white p-6 rounded-xl w-full max-w-md shadow-xl border border-slate-100 space-y-4">

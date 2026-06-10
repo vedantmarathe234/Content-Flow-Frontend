@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getAllContent } from "../../services/contentService";
+import { getAllContent, getMyContents, } from "../../services/contentService";
 import {
   format,
   startOfMonth,
@@ -14,6 +14,7 @@ import {
 import StatusBadge from "../content/StatusBadge";
 import { useNavigate } from "react-router-dom";
 import CreateContentModal from "../content/CreateContentModal";
+import { ArrowLeft } from "lucide-react";
 
 const ContentPage = () => {
   const navigate = useNavigate();
@@ -39,26 +40,39 @@ const calendarDays = eachDayOfInterval({
   }, []);
 
   const fetchContent = async () => {
-    try {
-      const response = await getAllContent();
-      setContents(response.data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+  try {
+    const role = localStorage.getItem("role");
+
+    let response;
+
+    if (role === "ADMIN") {
+      response = await getAllContent();
+    } else {
+      response = await getMyContents();
     }
-  };
+
+    const individualContent = (response.data || []).filter(
+      (item) => item.team === "Individual"
+    );
+
+    setContents(individualContent);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
-  const groupByDate = (contents) => {
+  
 
+  const groupByDate = (contents) => {
   const grouped = {};
 
   contents.forEach((item) => {
-
     const date = item.scheduledDate;
 
     if (!grouped[date]) {
@@ -66,7 +80,6 @@ const calendarDays = eachDayOfInterval({
     }
 
     grouped[date].push(item);
-
   });
 
   return grouped;
@@ -87,20 +100,23 @@ const today = format(new Date(), "yyyy-MM-dd");
 
 return (
   <div>
-
-
-    
-
     <div className="flex justify-between items-center mb-6">
-
-      <div>
-        <h1 className="text-3xl font-bold">
+      <div className="flex items-center gap-4">
+        <button
+                    onClick={() => navigate(-1)}
+                    className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                   <div>
+        <h1 className="text-2xl font-bold">
           Content Calendar
         </h1>
 
         <p className="text-slate-500">
           Manage scheduled content
         </p>
+      </div>
       </div>
 
   {["INTERN", "TEAM_LEADER"].includes(
@@ -119,19 +135,19 @@ return (
 
   <button
     onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-    className="w-10 h-10 rounded-lg border"
+     className="w-10 h-10 flex items-center justify-center bg-[#EEF5FF] hover:bg-slate-100 rounded-full transition-colors border border-slate-200"
   >
     ←
   </button>
 
   <button
-    onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-    className="w-10 h-10 rounded-lg border"
-  >
-    →
-  </button>
+  onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+  className="w-10 h-10 flex items-center justify-center bg-[#EEF5FF] hover:bg-slate-100 rounded-full transition-colors border border-slate-200"
+>
+  →
+</button>
 
-  <h2 className="text-2xl font-bold">
+  <h2 className="text-xl font-bold">
     {format(currentMonth, "MMMM yyyy")}
   </h2>
 
@@ -147,8 +163,6 @@ return (
   "
 >
 
-      {/* Weekday Header */}
-
       <div className="grid grid-cols-7 bg-[#EEF5FF] border-b border-[#D9E5F4]">
 
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
@@ -161,9 +175,6 @@ return (
 
       </div>
       
-
-      {/* Calendar Grid */}
-
       <div className="grid grid-cols-7 bg-[#EEF5FF] border-b border-[#D9E5F4]">
 
         {calendarDays.map((day) => {
@@ -197,8 +208,6 @@ return (
   cursor-pointer
   hover:bg-slate-50
   ${isSunday ? "bg-[#EEF5FF]" : "bg-white"}
- 
-  }}
 `}
     >
 

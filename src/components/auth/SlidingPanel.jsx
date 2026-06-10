@@ -78,11 +78,11 @@ const SlidingPanel = ({ isLogin, setIsLogin }) => {
             className="relative z-10 flex justify-center"
           >
             <img
-              src={isLogin ? "src/assets/Team-bro.svg" : "src/assets/Login-bro.svg"}
-              alt=""
-              className="w-[220px] opacity-90"
-              style={{ filter: "brightness(1.05) saturate(0.9)" }}
-            />
+  src={isLogin ? "src/assets/Team-bro.png" : "src/assets/Login-bro.png"}
+  alt="Auth Illustration"
+  className={isLogin ? "w-[350px] h-[250px] opacity-100 object-contain" : "w-[350px] h-[250px] opacity-90 object-contain"}
+  style={{ filter: "brightness(1.05) saturate(0.9)" }}
+/>
           </motion.div>
         </AnimatePresence>
 

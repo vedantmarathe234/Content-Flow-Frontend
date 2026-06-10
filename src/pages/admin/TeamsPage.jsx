@@ -74,7 +74,7 @@ const TeamsPage = () => {
             <ArrowLeft size={20} />
           </button>
           <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-            {userRole === "ADMIN" ? "Teams" : "My Team"}
+            {userRole === "ADMIN" ? "Teams / Teams Content" : "My Teams"}
           </h1>
         </div>
 
@@ -106,22 +106,30 @@ const TeamsPage = () => {
      
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {teams.map((team) => {
-         const sortedMembers = Array.isArray(team?.memberNames)
-  ? team.memberNames.map((name, index) => ({
-      name,
-      photo: team.memberPhotoUrls?.[index] || null,
-    }))
-  : [];
+          const sortedMembers = Array.isArray(team?.memberNames)
+            ? team.memberNames.map((name, index) => ({
+                name,
+                photo: team.memberPhotoUrls?.[index] || null,
+              }))
+            : [];
 
-sortedMembers.sort((a, b) => {
-  if (a.name === team?.teamLeaderName) return -1;
-  if (b.name === team?.teamLeaderName) return 1;
-  return 0;
-});
+          sortedMembers.sort((a, b) => {
+            if (a.name === team?.teamLeaderName) return -1;
+            if (b.name === team?.teamLeaderName) return 1;
+            return 0;
+          });
+
           return (
             <div
               key={team.id}
-              className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow w-full"
+              onClick={() =>
+              navigate(`/team/${team.id}/calendar`, {
+              state: {
+              teamName: team.name,
+              },
+              })
+             }
+              className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow w-full cursor-pointer"
             >
               <div className="flex justify-between items-start mb-3">
                 <div className="min-w-0">
@@ -136,7 +144,8 @@ sortedMembers.sort((a, b) => {
                 {userRole === "ADMIN" && (
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <button
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setCurrentTeam(team);
                         setIsModalOpen(true);
                       }}
@@ -145,7 +154,10 @@ sortedMembers.sort((a, b) => {
                       <FiEdit2 size={16} />
                     </button>
                     <button
-                      onClick={() => handleDelete(team.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(team.id);
+                      }}
                       className="text-red-500 hover:text-red-700"
                     >
                       <Trash2 size={16} />
@@ -163,21 +175,21 @@ sortedMembers.sort((a, b) => {
                   {sortedMembers.map((member, i) => (
                     <div key={i} className="flex items-center gap-2">
                       {member.photo ? (
-  <img
-    src={`http://localhost:8080/uploads/${member.photo}`}
-    alt={member.name}
-    className="w-6 h-6 rounded-full object-cover border border-slate-200 flex-shrink-0"
-    />
-    ) : (
-  <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[9px] font-bold text-slate-600 uppercase border border-slate-200 flex-shrink-0">
-    {member.name?.charAt(0)}
-  </div>
-        )}
+                        <img
+                          src={`http://localhost:8080/uploads/${member.photo}`}
+                          alt={member.name}
+                          className="w-6 h-6 rounded-full object-cover border border-slate-200 flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[9px] font-bold text-slate-600 uppercase border border-slate-200 flex-shrink-0">
+                          {member.name?.charAt(0)}
+                        </div>
+                      )}
                       <div className="flex flex-col min-w-0">
                         <span className="text-[11px] font-medium text-slate-700 truncate">
                           {member.name}
                         </span>
-                        {member.name === team?.teamLeaderName&& (
+                        {member.name === team?.teamLeaderName && (
                           <span className="text-[8px] text-green-600 font-bold uppercase">
                             Leader
                           </span>
@@ -191,8 +203,6 @@ sortedMembers.sort((a, b) => {
           );
         })}
       </div>
-
-     
       {userRole === "ADMIN" && isModalOpen && (
         <TeamModal
           isOpen={isModalOpen}
