@@ -88,15 +88,7 @@ return (
 
     
     <div className="mb-7">
-      <h1 className="text-[1.6rem]
-    font-bold
-    tracking-tight
-    mb-4
-    bg-gradient-to-r
-    from-[#0A5B63]
-    to-[#2F7E86]
-    bg-clip-text
-    text-transparent">Sign in</h1>
+      <h1 className="text-[1.6rem] font-black tracking-tight mb-2 bg-gradient-to-r from-[#063A3A] to-[#0D7A80] bg-clip-text text-transparent">Sign in</h1>
       <p className="text-sm text-slate-400 mt-1">Welcome back — enter your credentials to continue.</p>
     </div>
 

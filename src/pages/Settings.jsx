@@ -18,9 +18,9 @@ const Settings = () => {
   const [showChangePassword, setShowChangePassword] = useState(false);
 
   const [passwordData, setPasswordData] = useState({
-  currentPassword: "",
-  newPassword: "",
-  confirmPassword: "",
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
   });
   
   const fileRef = useRef();
@@ -39,43 +39,40 @@ const Settings = () => {
     fetchUserData();
   }, []);
 
- 
- const handleResetPassword = () => {
-  setShowChangePassword(true);
-};
+  const handleResetPassword = () => {
+    setShowChangePassword(true);
+  };
 
-const handlePasswordChange = (e) => {
-  setPasswordData({
-    ...passwordData,
-    [e.target.name]: e.target.value,
-  });
-};
-
-const handleSavePassword = async () => {
-  if (passwordData.newPassword !== passwordData.confirmPassword) {
-    toast.error("Passwords do not match");
-    return;
-  }
-
-  try {
-    await API.post("/auth/change-password", {
-      currentPassword: passwordData.currentPassword,
-      newPassword: passwordData.newPassword,
-    });
-
-    toast.success("Password changed successfully");
-
+  const handlePasswordChange = (e) => {
     setPasswordData({
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
+      ...passwordData,
+      [e.target.name]: e.target.value,
     });
+  };
 
-    setShowChangePassword(false);
-  } catch (err) {
-    toast.error("Failed to change password");
-  }
-};
+  const handleSavePassword = async () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      toast.error("All password fields are required");
+      return;
+    }
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    try {
+      await API.post("/auth/change-password", {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
+
+      toast.success("Password changed successfully");
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setShowChangePassword(false);
+    } catch (err) {
+      toast.error("Failed to change password");
+    }
+  };
 
   const handleUpload = () => { if (isEditing) fileRef.current.click(); };
 
@@ -88,6 +85,10 @@ const handleSavePassword = async () => {
   };
 
   const handleSave = async () => {
+    if (!name.trim()) {
+      toast.error("Name cannot be empty");
+      return;
+    }
     setSaving(true);
     try {
       let finalAvatarUrl = avatar;
@@ -112,183 +113,212 @@ const handleSavePassword = async () => {
       setSaving(false); 
     }
   };
+
   const handleRemovePhoto = async () => {
-  try {
-    await API.put("/users/remove-profile");
-
-    setAvatar("");
-    setPreviewUrl(null);
-    setTempAvatarFile(null);
-
-    toast.success("Profile photo removed");
-  } catch (err) {
-    toast.error("Failed to remove photo");
-  }
-};
+    try {
+      await API.put("/users/remove-profile");
+      setAvatar("");
+      setPreviewUrl(null);
+      setTempAvatarFile(null);
+      toast.success("Profile photo removed");
+    } catch (err) {
+      toast.error("Failed to remove photo");
+    }
+  };
 
   return (
-    <div >
+    <div className="w-full max-w-6xl mx-auto p-4 font-sans text-slate-800 animate-in fade-in duration-300">
       <div className="flex-1">
-        <div className="flex items-center justify-between mb-8">
-  <div className="flex items-center gap-4">
-    <button
-      onClick={() => navigate(-1)}
-      className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-    >
-      <FiArrowLeft size={20} />
-    </button>
+        
+        <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 hover:bg-[#063A3A]/5 rounded-full transition-colors cursor-pointer text-[#063A3A]"
+              title="Go Back"
+            >
+              <FiArrowLeft size={20} />
+            </button>
 
-    <div>
-      <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-        Account Settings
-      </h1>
-      <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider mt-1">
-        Manage your account details and preferences
-      </p>
-    </div>
-  </div>
+            <div>
+              <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">
+                Account Settings
+              </h1>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
+                Manage your account details and preferences
+              </p>
+            </div>
+          </div>
 
-  {!isEditing ? (
-    <button
-      onClick={() => setIsEditing(true)}
-      className="bg-[#4f46e5] hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition-all shadow-sm"
-    >
-      Edit Profile
-    </button>
-  ) : (
-    <button
-      onClick={handleSave}
-      className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition-all shadow-sm"
-    >
-      {saving ? "Saving..." : "Save Changes"}
-    </button>
-  )}
-</div>
+          {!isEditing ? (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="bg-[#063A3A] hover:bg-[#0D7A80] text-white font-bold py-2 px-5 rounded-xl text-sm transition-all shadow-sm cursor-pointer"
+            >
+              Edit Profile
+            </button>
+          ) : (
+            <button
+              onClick={handleSave}
+              className="bg-[#0D7A80]/90 hover:bg-[#0D7A80] text-white font-bold py-2 px-5 rounded-xl text-sm transition-all shadow-sm cursor-pointer"
+            >
+              {saving ? "Saving..." : "Save Changes"}
+            </button>
+          )}
+        </div>
+
+      
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
-          <div className="bg-white p-6 rounded-2xl shadow-md flex flex-col items-center justify-center text-center self-start lg:sticky lg:top-6">
-            <div className="relative mb-4">
-              <div className="w-40 h-40 rounded-full bg-gray-200 overflow-hidden cursor-pointer" onClick={handleUpload}>
+          
+          
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center self-start lg:sticky lg:top-6">
+            <div className="relative mb-4 group">
+              <div 
+                className={`w-40 h-40 rounded-full bg-slate-100 border-2 overflow-hidden flex items-center justify-center transition-all ${isEditing ? "cursor-pointer border-dashed border-[#0D7A80] hover:opacity-80" : "border-slate-200"}`} 
+                onClick={handleUpload}
+              >
                 {previewUrl || avatar ? (
-    <img
-    src={previewUrl || `http://localhost:8080/uploads/${avatar}?t=${Date.now()}`}
-    className="w-full h-full object-cover"
-    alt="Profile"
-    />
-    ) : (
-  <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-slate-600">
-    {name?.charAt(0)?.toUpperCase()}
-  </div>
-        )}
+                  <img
+                    src={previewUrl || `http://localhost:8080/uploads/${avatar}?t=${Date.now()}`}
+                    className="w-full h-full object-cover"
+                    alt="Profile Avatar"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-4xl font-black text-[#063A3A]">
+                    {name?.charAt(0)?.toUpperCase() || "U"}
+                  </div>
+                )}
               </div>
               {isEditing && (
-                <div onClick={handleUpload} className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:scale-110 transition">
+                <div onClick={handleUpload} className="absolute bottom-1 right-1 bg-[#0D7A80] text-white p-2 rounded-full cursor-pointer hover:bg-[#0D7A80] hover:scale-105 shadow-md transition-all ">
                   ✏️
                 </div>
               )}
               <input type="file" ref={fileRef} hidden accept="image/*" onChange={handleFileChange} />
             </div>
+
             {isEditing && avatar && (
-           <button
-           onClick={handleRemovePhoto}
-           className="mb-3 text-xs text-red-600 hover:text-red-800 font-semibold"
-           >
-          Remove Photo
-          </button>
-           )}
-            <h2 className="font-semibold text-lg">{name || "User"}</h2>
-            <p className="text-sm text-gray-500">{email || "Loading..."}</p>
+              <button
+                onClick={handleRemovePhoto}
+                className="mb-3 text-xs text-rose-600 hover:text-rose-800 font-bold transition-colors cursor-pointer"
+              >
+                Remove Photo
+              </button>
+            )}
+            <h2 className="font-bold text-lg text-slate-800">{name || "User Name"}</h2>
+            <p className="text-sm font-medium text-slate-400 mt-0.5 break-all">{email || "Email address"}</p>
           </div>
 
+          
           <div className="space-y-6">
-            <div className="bg-white p-6 rounded-2xl shadow-md">
-              <h3 className="font-semibold text-lg mb-4">Personal Information</h3>
+            
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+              <h3 className="font-bold text-base text-[#063A3A] mb-4">Personal Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-gray-500 font-semibold">Full Name</label>
+                  <label className="text-[11px] text-slate-400 font-bold uppercase tracking-wider block mb-1.5">Full Name</label>
                   <input 
+                    type="text"
+                    placeholder="Enter your full name"
                     value={name} 
                     disabled={!isEditing} 
                     onChange={(e) => setName(e.target.value)} 
-                    className="w-full mt-1 px-3 py-2 rounded-lg border bg-gray-50" 
+                    className="w-full px-3 py-2 text-sm font-medium rounded-xl border border-slate-200 bg-slate-50/50 text-slate-800 focus:outline-none hover:border-[#0D7A80]/50 focus:ring-2 focus:ring-[#0D7A80]/20 focus:border-[#0D7A80] disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed transition-all" 
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-gray-500 font-semibold">Email</label>
+                  <label className="text-[11px] text-slate-400 font-bold uppercase tracking-wider block mb-1.5">Email Address</label>
                   <input 
+                    type="email"
                     value={email} 
                     disabled 
-                    className="w-full mt-1 px-3 py-2 rounded-lg border bg-gray-100 cursor-not-allowed" 
+                    placeholder="your-email@domain.com"
+                    className="w-full px-3 py-2 text-sm font-medium rounded-xl border border-slate-200 bg-slate-100 text-slate-400 cursor-not-allowed outline-none" 
                   />
                 </div>
               </div>
             </div>
 
-           
-            <div className="bg-white p-6 rounded-2xl shadow-md flex justify-between items-center">
+         
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h3 className="font-semibold text-gray-800">Security</h3>
-                <p className="text-sm text-gray-500">Manage your account security</p>
+                <h3 className="font-bold text-base text-[#063A3A]">Security & Privacy</h3>
+                <p className="text-sm font-medium text-slate-400 mt-0.5">Manage credentials and secure your digital account</p>
               </div>
               <button 
                 onClick={handleResetPassword} 
-                className="px-5 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition"
+                className="px-5 py-2 bg-[#0D7A80] text-white font-bold text-sm rounded-xl hover:bg-[#063A3A] transition-all shadow-sm cursor-pointer self-start sm:self-auto"
               >
                 Reset Password
               </button>
             </div>
+
             {showChangePassword && (
-  <div className="bg-white p-6 rounded-2xl shadow-md">
-    <h3 className="font-semibold text-lg mb-4">
-      Change Password
-    </h3>
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 animate-in fade-in slide-in-from-top-4 duration-200">
+                <h3 className="font-bold text-base text-[#063A3A] mb-4">
+                  Change Password
+                </h3>
 
-    <div className="space-y-4">
-      <input
-        type="password"
-        name="currentPassword"
-        placeholder="Current Password"
-        value={passwordData.currentPassword}
-        onChange={handlePasswordChange}
-        className="w-full px-3 py-2 border rounded-lg"
-      />
+                <div className="max-w-md space-y-4">
+                  <div>
+                    <label className="text-[11px] text-slate-400 font-bold uppercase tracking-wider block mb-1.5">Current Password</label>
+                    <input
+                      type="password"
+                      name="currentPassword"
+                      placeholder="Enter existing account password..."
+                      value={passwordData.currentPassword}
+                      onChange={handlePasswordChange}
+                      className="w-full px-4 py-2 text-sm border border-slate-200 bg-slate-50 rounded-xl focus:outline-none hover:border-[#0D7A80]/50 focus:ring-2 focus:ring-[#0D7A80]/20 focus:border-[#0D7A80] transition-all"
+                    />
+                  </div>
 
-      <input
-        type="password"
-        name="newPassword"
-        placeholder="New Password"
-        value={passwordData.newPassword}
-        onChange={handlePasswordChange}
-        className="w-full px-3 py-2 border rounded-lg"
-      />
+                  <div>
+                    <label className="text-[11px] text-slate-400 font-bold uppercase tracking-wider block mb-1.5">New Password</label>
+                    <input
+                      type="password"
+                      name="newPassword"
+                      placeholder="Create a strong new password..."
+                      value={passwordData.newPassword}
+                      onChange={handlePasswordChange}
+                      className="w-full px-4 py-2 text-sm border border-slate-200 bg-slate-50 rounded-xl focus:outline-none hover:border-[#0D7A80]/50 focus:ring-2 focus:ring-[#0D7A80]/20 focus:border-[#0D7A80] transition-all"
+                    />
+                  </div>
 
-      <input
-        type="password"
-        name="confirmPassword"
-        placeholder="Confirm New Password"
-        value={passwordData.confirmPassword}
-        onChange={handlePasswordChange}
-        className="w-full px-3 py-2 border rounded-lg"
-      />
+                  <div>
+                    <label className="text-[11px] text-slate-400 font-bold uppercase tracking-wider block mb-1.5">Confirm New Password</label>
+                    <input
+                      type="password"
+                      name="confirmPassword"
+                      placeholder="Retype your new password to match..."
+                      value={passwordData.confirmPassword}
+                      onChange={handlePasswordChange}
+                      className="w-full px-4 py-2 text-sm border border-slate-200 bg-slate-50 rounded-xl focus:outline-none hover:border-[#0D7A80]/50 focus:ring-2 focus:ring-[#0D7A80]/20 focus:border-[#0D7A80] transition-all"
+                    />
+                  </div>
 
-      <div className="flex gap-3">
-        <button
-          onClick={handleSavePassword}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
-        >
-          Save Password
-        </button>
+                  <div className="flex gap-3 pt-2">
+                    <button
+                      onClick={handleSavePassword}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-xl font-bold text-sm shadow-sm transition-all cursor-pointer"
+                    >
+                      Save Password
+                    </button>
 
-        <button
-          onClick={() => setShowChangePassword(false)}
-          className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded-lg"
-        >
-          Cancel
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+                    <button
+                      onClick={() => {
+                        setShowChangePassword(false);
+                        setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+                      }}
+                      className="bg-slate-100 hover:bg-slate-200 text-slate-600 px-5 py-2 rounded-xl font-bold text-sm transition-all cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
+
         </div>
       </div>
     </div>

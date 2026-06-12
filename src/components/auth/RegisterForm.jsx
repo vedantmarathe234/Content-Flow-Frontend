@@ -109,15 +109,7 @@ const RegisterForm = ({ setIsLogin }) => {
     <img src="src/assets/Athenura.png" alt="Athenura" className="h-15 object-contain" />
   </div>
 
-  <h1 className="text-[1.6rem]
-    font-bold
-    tracking-tight
-    mb-4
-    bg-gradient-to-r
-    from-[#0A5B63]
-    to-[#2F7E86]
-    bg-clip-text
-    text-transparent" >Create account</h1>
+  <h1 className="text-[1.6rem] font-black tracking-tight mb-2 bg-gradient-to-r from-[#063A3A] to-[#0D7A80] bg-clip-text text-transparent">Create account</h1>
   
 </div>
 
@@ -158,9 +150,7 @@ const RegisterForm = ({ setIsLogin }) => {
   focus:border-[#0A5B63] focus:bg-white focus:ring-4 focus:ring-[#0A5B63]/8 placeholder:text-slate-300"
                       />
       
-                      {/* {emailError && (
-                        <p className="text-red-500 text-xs mt-1">{emailError}</p>
-                      )} */}
+                      
                     </div>
       
                     <div>
@@ -208,7 +198,7 @@ const RegisterForm = ({ setIsLogin }) => {
                             value={formData.role}
                             onChange={handleChange}
                             className="w-full border border-slate-200 bg-slate-50 appearance-none rounded-xl px-4 py-2.5 text-sm outline-none transition-all
-  focus:border-[#0A5B63] focus:bg-white focus:ring-4 focus:ring-[#0A5B63]/8 placeholder:text-slate-300"
+                            focus:border-[#0A5B63] focus:bg-white focus:ring-4 focus:ring-[#0A5B63]/8 placeholder:text-slate-300"
                           >
                             <option value="INTERN">INTERN</option>
                             <option value="ADMIN">ADMIN</option>

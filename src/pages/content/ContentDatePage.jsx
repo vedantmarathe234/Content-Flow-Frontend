@@ -13,7 +13,7 @@ const ContentDatePage = () => {
   const [contents, setContents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false); 
- const [selectedContentId, setSelectedContentId] = useState(null);
+  const [selectedContentId, setSelectedContentId] = useState(null);
 
   useEffect(() => {
     fetchContent();
@@ -49,19 +49,20 @@ const ContentDatePage = () => {
   const canCreateContent = role === "INTERN" || role === "TEAM_LEADER";
 
   return (
-    <div className="w-full font-sans text-slate-800">
-      {/* Header Section */}
+    <div className="w-full font-sans text-slate-800 p-2 min-h-screen bg-slate-50/50">
+      
+      
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
             className="p-2 hover:bg-slate-100 rounded-full transition-colors"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={20} className="text-[#063A3A]" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Content</h1>
-            <p className="text-slate-500 mt-0.5">{date}</p>
+            <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">Content</h1>
+            <p className="text-sm text-slate-500 mt-0.5">{date}</p>
           </div>
         </div>
 
@@ -69,65 +70,89 @@ const ContentDatePage = () => {
           <button
             onClick={() => setShowCreateModal(true)}
             disabled={isPastDate}
-            className={`py-2 px-4 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 shadow-sm ${
+            className={`py-2 px-4 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
               isPastDate
-                ? "bg-slate-200 text-slate-500 cursor-not-allowed"
-                : "bg-[#4f46e5] hover:bg-indigo-700 text-white"
+                ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
+                : "bg-[#063A3A] hover:bg-[#0D7A80] text-white"
             }`}
           >
-            + Add Content
+            <span className="text-lg font-light">+</span> Add Content
           </button>
         )}
       </div>
 
       {isPastDate && canCreateContent && (
-        <p className="text-red-500 mb-4 text-sm font-medium">You cannot create content for past dates.</p>
+        <div className="mb-4 p-3 bg-rose-50 border border-rose-200/60 rounded-xl text-rose-700 text-xs font-semibold tracking-wide uppercase max-w-fit">
+          ⚠️ You cannot create content for past dates.
+        </div>
       )}
 
-      {/* Table Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+     
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-100 text-slate-400 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200">
-                <th className="py-3.5 px-6 text-center">Created By</th>
-                <th className="py-3.5 px-6 text-center">Department</th>
-                <th className="py-3.5 px-6 text-center">Scheduled Date</th>
-                 <th className="py-3.5 px-6 text-center">Title</th>
-                <th className="py-3.5 px-6 text-center">Status</th>
-                <th className="py-3.5 px-6 text-center">Current Stage</th>
-                <th className="py-3.5 px-6 text-center">Action</th>
+              <tr className="bg-[#063A3A]/40 text-[#063A3A] text-xs uppercase tracking-wider font-bold border-b border-slate-200">
+                <th className="py-4 px-6 text-center">Profile</th>
+                <th className="py-4 px-6 text-center">Created By</th>
+                <th className="py-4 px-6 text-center">Department</th>
+                <th className="py-4 px-6 text-center">Scheduled Date</th>
+                <th className="py-4 px-6 text-center">Title</th>
+                <th className="py-4 px-6 text-center">Status</th>
+                <th className="py-4 px-6 text-center">Current Stage</th>
+                <th className="py-4 px-6 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="text-sm divide-y divide-slate-100 text-slate-600 font-medium text-center">
+            <tbody className="text-sm divide-y divide-slate-100 text-slate-600 font-medium">
               {loading ? (
                 <tr>
-                  <td colSpan="7" className="p-8 text-center text-slate-400">Loading...</td>
+                  <td colSpan="7" className="p-8 text-center text-slate-400 font-semibold">Loading...</td>
                 </tr>
               ) : contents.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="p-8 text-center text-slate-500">No content scheduled for this date.</td>
+                  <td colSpan="7" className="p-8 text-center text-slate-500 font-medium">No content scheduled for this date.</td>
                 </tr>
               ) : (
                 contents.map((content) => (
-                  <tr key={content.id} className="hover:bg-slate-50/80 transition-colors">
-                   
-                    <td className="py-4 px-6 text-center">{content.createdBy}</td>
-                    <td className="py-4 px-6 text-center">{content.department}</td>
-                    <td className="py-4 px-6 text-center">{content.scheduledDate}</td>
-                    <td className="py-4 px-6 text-slate-900 font-semibold text-center">{content.title}</td>
-                    <td className="py-4 px-6 flex justify-center items-center">
-                      <StatusBadge status={content.status} />
-                    </td>
-                    <td className="py-4 px-6 text-center">{content.currentStage}</td>
+                  <tr key={content.id} className="hover:bg-[#0D7A80]/10 transition-colors">
                     <td className="py-4 px-6 text-center">
-                   
-<button
-  onClick={() => setSelectedContentId(content.id)} 
-  className="text-indigo-600 hover:text-indigo-800 transition-colors underline-offset-4 hover:underline"
->
-  View Details
-</button>
+  {content.profilePhotoUrl ? (
+  <img
+    src={`http://localhost:8080/uploads/${content.profilePhotoUrl}`}
+    alt={content.createdBy}
+    className="w-10 h-10 rounded-full object-cover border mx-auto "
+  />
+) : (
+  <div className="w-10 h-10 rounded-full bg-[#063A3A]/5 text-white flex items-center justify-center font-semibold mx-auto">
+    {content.createdBy?.charAt(0)}
+  </div>
+)}
+</td>
+                    <td className="py-4 px-6 text-center">{content.createdBy}</td>
+                    <td className="py-4 px-6 text-center">
+                      <span className="text-[11px]  text-[#0D7A80] bg-[#0D7A80]/5 px-2 py-1 rounded-md  tracking-wider">
+                        {content.department}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-center text-slate-500 text-xs">{content.scheduledDate}</td>
+                    <td className="py-4 px-6 text-slate-900 font-semibold text-center">{content.title}</td>
+                    <td className="py-4 px-6">
+                      <div className="flex justify-center items-center">
+                        <StatusBadge status={content.status} />
+                      </div>
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      <span className="text-xs bg-[#0D7A80]/5 text-[#0D7A80] px-2.5 py-1 rounded-md font-semibold">
+                        {content.currentStage}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-center">
+                      <button
+                        onClick={() => setSelectedContentId(content.id)} 
+                        className="text-[#0D7A80] hover:text-[#063A3A] font-bold text-xs uppercase tracking-wider transition-colors underline-offset-4 hover:underline"
+                      >
+                        View Details
+                      </button>
                     </td>
                   </tr>
                 ))
@@ -136,14 +161,17 @@ const ContentDatePage = () => {
           </table>
         </div>
       </div>
-      {selectedContentId && (
-  <ContentDetailsPage 
-    id={selectedContentId} 
-    onClose={() => setSelectedContentId(null)} 
-    onRefresh={fetchContent} 
-  />
-)}
 
+      
+      {selectedContentId && (
+        <ContentDetailsPage 
+          id={selectedContentId} 
+          onClose={() => setSelectedContentId(null)} 
+          onRefresh={fetchContent} 
+        />
+      )}
+
+    
       <CreateContentModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}

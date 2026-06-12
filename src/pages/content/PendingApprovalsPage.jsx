@@ -3,6 +3,7 @@ import { getPendingContent } from "../../services/contentService";
 import { useNavigate } from "react-router-dom";
 import StatusBadge from "../content/StatusBadge";
 import ContentDetailsPage from "./ContentDetailsPage"; 
+import { FiArrowLeft } from "react-icons/fi"; // Arrow Icon Import केला आहे
 
 const PendingApprovalsPage = () => {
   const [contents, setContents] = useState([]);
@@ -23,51 +24,66 @@ const PendingApprovalsPage = () => {
   };
 
   return (
-    <div className="w-full font-sans text-slate-800">
-      <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-6">
-        Pending Approvals
-      </h1>
+    <div className="w-full font-sans text-slate-800 animate-in fade-in duration-300">
+      
+     
+      <div className="flex items-center gap-3 mb-6">
+        <button 
+          onClick={() => navigate(-1)} 
+          className="p-2 hover:bg-[#063A3A]/5 rounded-full transition-colors cursor-pointer text-[#063A3A]"
+          title="Go Back"
+        >
+          <FiArrowLeft size={20} />
+        </button>
+        <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">Pending Approvals</h1>
+      </div>
 
       {contents.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center text-slate-500">
-          No pending approvals 
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center text-slate-500 font-medium">
+          No pending approvals available at the moment.
         </div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-100 text-slate-400 text-[11px] uppercase tracking-wider font-semibold border-b border-slate-200">
-                  <th className="py-3.5 px-6 text-center">Title</th>
-                  <th className="py-3.5 px-6 text-center">Scheduled Date</th>
-                  <th className="py-3.5 px-6 text-center">Created By</th>
-                  <th className="py-3.5 px-6 text-center">Department</th>
-                  <th className="py-3.5 px-6 text-center">Team</th>
-                  <th className="py-3.5 px-6 text-center">Status</th>
-                  <th className="py-3.5 px-6 text-center">Action</th>
+                <tr className="bg-[#063A3A]/40 text-[#063A3A] text-xs uppercase tracking-wider font-bold border-b border-slate-200">
+                  <th className="py-4 px-6 text-center">Title</th>
+                  <th className="py-4 px-6 text-center">Scheduled Date</th>
+                  <th className="py-4 px-6 text-center">Created By</th>
+                  <th className="py-4 px-6 text-center">Department</th>
+                  <th className="py-4 px-6 text-center">Uploaded By</th>
+                  <th className="py-4 px-6 text-center">Status</th>
+                  <th className="py-4 px-6 text-center">Action</th>
                 </tr>
               </thead>
               <tbody className="text-sm divide-y divide-slate-100 text-slate-600 font-medium text-center">
                 {contents.map((content) => (
                   <tr
                     key={content.id}
-                    className="hover:bg-slate-50/80 transition-colors"
+                    className="hover:bg-[#0D7A80]/10 transition-colors duration-150"
                   >
-                    <td className="py-4 px-6 text-slate-900 font-semibold">{content.title}</td>
-                    <td className="py-4 px-6">{content.scheduledDate}</td>
+                    <td className="py-4 px-6 text-slate-900 font-semibold text-left max-w-xs truncate">{content.title}</td>
+                    <td className="py-4 px-6 text-slate-500">{content.scheduledDate || "N/A"}</td>
                     <td className="py-4 px-6">{content.createdBy}</td>
-                    <td className="py-4 px-6">{content.department}</td>
-                    <td className="py-4 px-6">{content.team || "Individual"}</td>
-                    <td className="py-4 px-6 flex justify-center items-center">
-                      <StatusBadge status={content.status} />
+                    <td className="py-4 px-6 text-center">
+                      <span className="text-[11px] font-bold text-[#0D7A80] bg-[#0D7A80]/5 px-2 py-1 rounded-md tracking-wider">
+                        {content.department}
+                      </span>
+                    </td>
+                    <td className="py-4 px-6 text-slate-500">{content.team || "Individual"}</td>
+                    <td className="py-4 px-6">
+                      <div className="flex justify-center items-center">
+                        <StatusBadge status={content.status} />
+                      </div>
                     </td>
                     <td className="py-4 px-6 text-center">
-                     <button
-                     onClick={() => setSelectedContentId(content.id)} 
-                     className="text-indigo-600 hover:text-indigo-800 transition-colors underline-offset-4 hover:underline"
-                     >
-                     View Details
-                     </button>
+                      <button
+                        onClick={() => setSelectedContentId(content.id)} 
+                        className="text-[#0D7A80] hover:text-[#063A3A] font-bold transition-colors cursor-pointer text-xs uppercase tracking-wider underline-offset-4 hover:underline"
+                      >
+                        View Details
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -76,14 +92,16 @@ const PendingApprovalsPage = () => {
           </div>
         </div>
       )}
-    {selectedContentId && (
-  <ContentDetailsPage
-    id={selectedContentId}
-    onClose={() => setSelectedContentId(null)}
-    onRefresh={fetchPendingContent}
-  />
-)}
+
+      {selectedContentId && (
+        <ContentDetailsPage
+          id={selectedContentId}
+          onClose={() => setSelectedContentId(null)}
+          onRefresh={fetchPendingContent}
+        />
+      )}
     </div>
   );
 };
+
 export default PendingApprovalsPage;

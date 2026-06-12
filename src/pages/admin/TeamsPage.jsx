@@ -63,17 +63,18 @@ const TeamsPage = () => {
   };
 
   return (
-    <div className="w-full font-sans text-slate-800">
+    <div className="w-full font-sans text-slate-800 p-2 min-h-screen bg-slate-50/50">
       
-      <div className="flex items-center justify-between mb-8">
+    
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate(-1)}
             className="p-2 hover:bg-slate-100 rounded-full transition-colors"
           >
-            <ArrowLeft size={20} />
+            <ArrowLeft size={20} className="text-[#063A3A]" />
           </button>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">
             {userRole === "ADMIN" ? "Teams / Teams Content" : "My Teams"}
           </h1>
         </div>
@@ -84,18 +85,16 @@ const TeamsPage = () => {
               setCurrentTeam(null);
               setIsModalOpen(true);
             }}
-            className="bg-[#4f46e5] hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition-all flex items-center gap-1.5 shadow-sm"
+            className="bg-[#063A3A] hover:bg-[#0D7A80] text-white font-semibold py-2 px-4 rounded-xl text-sm transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
           >
-            <span className="text-lg font-light">+</span>
-            Create Team
+            <span className="text-lg font-light">+</span> Create Team
           </button>
         )}
       </div>
 
-  
       {teams.length === 0 && (
-        <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-          <p className="text-slate-500">
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+          <p className="text-slate-500 font-medium">
             {userRole === "ADMIN"
               ? "No teams found."
               : "You are not assigned to any team yet."}
@@ -123,57 +122,53 @@ const TeamsPage = () => {
             <div
               key={team.id}
               onClick={() =>
-              navigate(`/team/${team.id}/calendar`, {
-              state: {
-              teamName: team.name,
-              },
-              })
-             }
-              className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow w-full cursor-pointer"
+                navigate(`/team/${team.id}/calendar`, {
+                  state: { teamName: team.name },
+                })
+              }
+              className="bg-white p-4 rounded-2xl border border-l-4 border-l-[#0D7A80] border-slate-200 shadow-sm hover:shadow-md transition-all w-full cursor-pointer bg-[#063A3A]/[0.01] hover:bg-[#063A3A]/[0.05]"
             >
+           
               <div className="flex justify-between items-start mb-3">
                 <div className="min-w-0">
-                  <h3 className="text-sm font-bold text-slate-900 truncate">
+                  <h3 className="text-sm font-bold text-[#063A3A] truncate">
                     {team.name}
                   </h3>
-                  <p className="text-[10px] text-blue-600 font-medium uppercase mt-0.5 truncate">
+                  <p className="text-[10px] text-[#0D7A80] font-bold uppercase mt-0.5 truncate tracking-wider">
                     {team.departmentName}
                   </p>
                 </div>
 
                 {userRole === "ADMIN" && (
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-1.5 flex-shrink-0 bg-white p-1 rounded-lg border border-slate-100 shadow-3xs" onClick={(e) => e.stopPropagation()}>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
+                      onClick={() => {
                         setCurrentTeam(team);
                         setIsModalOpen(true);
                       }}
-                      className="text-indigo-600 hover:text-indigo-800"
+                      className="text-[#0D7A80] hover:text-[#063A3A] p-1 transition-colors"
                     >
-                      <FiEdit2 size={16} />
+                      <FiEdit2 size={15} />
                     </button>
                     <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(team.id);
-                      }}
-                      className="text-red-500 hover:text-red-700"
+                      onClick={() => handleDelete(team.id)}
+                      className="text-red-500 hover:text-red-700 p-1 transition-colors"
                     >
-                      <Trash2 size={16} />
+                      <Trash2 size={15} />
                     </button>
                   </div>
                 )}
               </div>
 
-              <div>
+              
+              <div className="border-t border-slate-100 pt-3 mt-1">
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                  Members
+                  Members ({sortedMembers.length})
                 </p>
 
                 <div className="flex flex-col gap-1.5">
                   {sortedMembers.map((member, i) => (
-                    <div key={i} className="flex items-center gap-2">
+                    <div key={i} className="flex items-center gap-2 p-1 rounded-lg bg-white border border-slate-100/70 shadow-3xs">
                       {member.photo ? (
                         <img
                           src={`http://localhost:8080/uploads/${member.photo}`}
@@ -181,16 +176,17 @@ const TeamsPage = () => {
                           className="w-6 h-6 rounded-full object-cover border border-slate-200 flex-shrink-0"
                         />
                       ) : (
-                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-[9px] font-bold text-slate-600 uppercase border border-slate-200 flex-shrink-0">
+                        <div className="w-6 h-6 rounded-full bg-[#063A3A]/5 flex items-center justify-center text-[9px] font-bold text-slate-600 uppercase border border-slate-200 flex-shrink-0">
                           {member.name?.charAt(0)}
                         </div>
                       )}
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-[11px] font-medium text-slate-700 truncate">
+                      
+                      <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+                        <span className="text-[11px] font-medium text-slate-700 truncate block">
                           {member.name}
                         </span>
                         {member.name === team?.teamLeaderName && (
-                          <span className="text-[8px] text-green-600 font-bold uppercase">
+                          <span className="text-[8px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded-md font-bold uppercase tracking-wider flex-shrink-0">
                             Leader
                           </span>
                         )}
@@ -203,6 +199,8 @@ const TeamsPage = () => {
           );
         })}
       </div>
+
+      
       {userRole === "ADMIN" && isModalOpen && (
         <TeamModal
           isOpen={isModalOpen}

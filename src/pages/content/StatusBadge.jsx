@@ -1,27 +1,34 @@
 const StatusBadge = ({ status }) => {
 
   const colors = {
-    APPROVED: "bg-green-100 text-green-700",
-    REJECTED: "bg-red-100 text-red-700",
-    PENDING: "bg-yellow-100 text-yellow-700",
-    PENDING_LEADER: "bg-orange-100 text-orange-700",
+    APPROVED: "bg-emerald-50 text-emerald-700 border-emerald-200/60",
+    REJECTED: "bg-rose-50 text-rose-700 border-rose-200/60",
+    PENDING: "bg-amber-50 text-amber-700 border-amber-200/60",
+    PENDING_LEADER: "bg-orange-50 text-orange-700 border-orange-200/60",
   };
+
+  const currentStyle = colors[status] || "bg-slate-50 text-slate-600 border-slate-200";
+
+  const formattedStatus = status ? status.replace(/_/g, " ") : "";
 
   return (
     <span
       className={`
-        px-1.5
+        px-2
         py-0.5
+        border
         rounded-md
         text-[10px]
-        font-medium
+        font-bold
+        uppercase
+        tracking-wider
         whitespace-nowrap
-        ${colors[status]}
+        shadow-sm
+        transition-all
+        ${currentStyle}
       `}
     >
-      {status === "PENDING_LEADER"
-        ? "Pending"
-        : status}
+      {formattedStatus}
     </span>
   );
 };

@@ -18,281 +18,233 @@ import { ArrowLeft } from "lucide-react";
 
 const ContentPage = () => {
   const navigate = useNavigate();
-    const [currentMonth, setCurrentMonth] = useState(new Date());
-    const [showCreateModal, setShowCreateModal] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const [contents, setContents] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // eslint-disable-next-line no-unused-vars
   const [selectedDate, setSelectedDate] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [showOverview, setShowOverview] = useState(false);
 
-const [showOverview, setShowOverview] = useState(false);
-
-
-const calendarDays = eachDayOfInterval({
-  start: startOfWeek(startOfMonth(currentMonth)),
-  end: endOfWeek(endOfMonth(currentMonth)),
-});
-
+  const calendarDays = eachDayOfInterval({
+    start: startOfWeek(startOfMonth(currentMonth)),
+    end: endOfWeek(endOfMonth(currentMonth)),
+  });
 
   useEffect(() => {
     fetchContent();
   }, []);
 
   const fetchContent = async () => {
-  try {
-    const role = localStorage.getItem("role");
+    try {
+      const role = localStorage.getItem("role");
+      let response;
 
-    let response;
+      if (role === "ADMIN") {
+        response = await getAllContent();
+      } else {
+        response = await getMyContents();
+      }
 
-    if (role === "ADMIN") {
-      response = await getAllContent();
-    } else {
-      response = await getMyContents();
+      const individualContent = (response.data || []).filter(
+        (item) => item.team === "Individual"
+      );
+
+      setContents(individualContent);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
-
-    const individualContent = (response.data || []).filter(
-      (item) => item.team === "Individual"
-    );
-
-    setContents(individualContent);
-  } catch (error) {
-    console.error(error);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div className="p-8 text-[#063A3A] font-semibold">Loading...</div>;
   }
 
-  
-
   const groupByDate = (contents) => {
-  const grouped = {};
+    const grouped = {};
+    contents.forEach((item) => {
+      const date = item.scheduledDate;
+      if (!grouped[date]) {
+        grouped[date] = [];
+      }
+      grouped[date].push(item);
+    });
+    return grouped;
+  };
 
-  contents.forEach((item) => {
-    const date = item.scheduledDate;
-
-    if (!grouped[date]) {
-      grouped[date] = [];
-    }
-
-    grouped[date].push(item);
-  });
-
-  return grouped;
-};
-
-const groupedContent = groupByDate(contents);
-
-const currentDate = new Date();
-
-const monthDays = eachDayOfInterval({
-  start: startOfMonth(currentDate),
-  end: endOfMonth(currentDate),
-});
-
-
-const today = format(new Date(), "yyyy-MM-dd");
-
-
-return (
-  <div>
-    <div className="flex justify-between items-center mb-6">
-      <div className="flex items-center gap-4">
-        <button
-                    onClick={() => navigate(-1)}
-                    className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-                  >
-                    <ArrowLeft size={20} />
-                  </button>
-                   <div>
-        <h1 className="text-2xl font-bold">
-          Content Calendar
-        </h1>
-
-        <p className="text-slate-500">
-          Manage scheduled content
-        </p>
-      </div>
-      </div>
-
-  {["INTERN", "TEAM_LEADER"].includes(
-  localStorage.getItem("role")
-) && (
-  <button
-    onClick={() => setShowCreateModal(true)}
-    className="px-4 py-2 bg-blue-600 text-white rounded-lg"
-  >
-    Add Content
-  </button>
-)}
-
-    </div>
-    <div className="flex items-center gap-3 mb-6">
-
-  <button
-    onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-     className="w-10 h-10 flex items-center justify-center bg-[#EEF5FF] hover:bg-slate-100 rounded-full transition-colors border border-slate-200"
-  >
-    ←
-  </button>
-
-  <button
-  onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-  className="w-10 h-10 flex items-center justify-center bg-[#EEF5FF] hover:bg-slate-100 rounded-full transition-colors border border-slate-200"
->
-  →
-</button>
-
-  <h2 className="text-xl font-bold">
-    {format(currentMonth, "MMMM yyyy")}
-  </h2>
-
-</div>
-
-   <div
-  className="
-    bg-white
-    rounded-2xl
-    border
-    border-[#D9E5F4]
-    overflow-hidden
-  "
->
-
-      <div className="grid grid-cols-7 bg-[#EEF5FF] border-b border-[#D9E5F4]">
-
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-
-        <div className="text-center py-3 font-semibold text-slate-700">
-            {day}
-          </div>
-
-        ))}
-
-      </div>
-      
-      <div className="grid grid-cols-7 bg-[#EEF5FF] border-b border-[#D9E5F4]">
-
-        {calendarDays.map((day) => {
-          
-
-  const dateString = format(day, "yyyy-MM-dd");
-  const isToday = dateString === today;
-  const items = groupedContent[dateString] || [];
-  const selectedContents =
-  groupedContent[selectedDate] || [];
-
-  const isCurrentMonth = isSameMonth(day, currentMonth);
-  const isSunday = day.getDay() === 0;
-
-
+  const groupedContent = groupByDate(contents);
+  const today = format(new Date(), "yyyy-MM-dd");
 
   return (
-
-    <div
-      key={dateString} 
-      onClick={() => {
-  navigate(`/content/date/${dateString}`);
-}}
+    <div className="w-full font-sans text-slate-800 p-2 min-h-screen bg-slate-50/50">
       
- className={`
-  min-h-[140px]
-  border-r
-  border-b
-  border-[#D9E5F4]
-  p-2
-  cursor-pointer
-  hover:bg-slate-50
-  ${isSunday ? "bg-[#EEF5FF]" : "bg-white"}
-`}
-    >
+     
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+          >
+            <ArrowLeft size={20} className="text-[#063A3A]" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">
+              Content Calendar
+            </h1>
+            <p className="text-sm text-slate-500">
+              Manage scheduled content
+            </p>
+          </div>
+        </div>
 
-<div
-  className={`
-    mb-2
-    font-medium
-    ${
-      isCurrentMonth
-        ? "text-slate-900"
-        : "text-slate-400 opacity-60"
-    }
-  `}
->
-  <span
-  className={`
-    flex
-    items-center
-    justify-center
-    w-8
-    h-8
-    rounded-full
-    transition-all
-    ${
-      isToday
-        ? "bg-blue-600 text-white font-bold shadow-md"
-        : ""
-    }
-  `}
->
-    {format(day, "d")}
-  </span>
-</div>
+        {["INTERN", "TEAM_LEADER"].includes(localStorage.getItem("role")) && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="bg-[#063A3A] hover:bg-[#0D7A80] text-white font-semibold py-2 px-4 rounded-xl text-sm transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+          >
+            <span className="text-lg font-light">+</span> Add Content
+          </button>
+        )}
+      </div>
 
-{items.slice(0, 3).map((content) => (
+     
+      <div className="flex items-center gap-3 mb-6">
+        <button
+          onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+          className="w-10 h-10 flex items-center justify-center bg-[#063A3A]/5 hover:bg-[#063A3A]/40 text-[#063A3A] rounded-full transition-colors border border-slate-200/60 font-bold"
+        >
+          ←
+        </button>
+        <button
+          onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+          className="w-10 h-10 flex items-center justify-center bg-[#063A3A]/5 hover:bg-[#063A3A]/40 text-[#063A3A] rounded-full transition-colors border border-slate-200/60 font-bold"
+        >
+          →
+        </button>
+        <h2 className="text-xl font-bold text-[#063A3A]">
+          {format(currentMonth, "MMMM yyyy")}
+        </h2>
+      </div>
 
-  <div
-  key={content.id}
-  className={`
-  flex
-  items-center
-  justify-between
-  gap-1
-  px-1.5
-  py-1
-  mb-1
-  rounded-md
-  text-white
-  ${{
-    APPROVED: "bg-green-500",
-    REJECTED: "bg-red-500",
-    PENDING: "bg-amber-500",
-    PENDING_LEADER: "bg-orange-500",
-  }[content.status] || "bg-slate-500"}
-`}
->
+      
+      <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
+        
+        
+        <div className="grid grid-cols-7 bg-[#063A3A]/40  border-b border-slate-200/80">
+          {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+            <div key={day} className="text-center py-3.5 font-bold text-[#063A3A] text-xs uppercase tracking-wider">
+              {day}
+            </div>
+          ))}
+        </div>
+        
+   
+        <div className="grid grid-cols-7 bg-slate-100">
+          {calendarDays.map((day) => {
+            const dateString = format(day, "yyyy-MM-dd");
+            const isToday = dateString === today;
+            const items = groupedContent[dateString] || [];
+            const isCurrentMonth = isSameMonth(day, currentMonth);
+            const isSunday = day.getDay() === 0;
 
-    <span className="text-[11px] truncate flex-1 text-white1">
-  {content.title}
-</span>
+            return (
+              <div
+                key={dateString}
+                onClick={() => navigate(`/content/date/${dateString}`)}
+                className={`
+                  min-h-[140px]
+                  border-r
+                  border-b
+                  border-slate-200/70
+                  p-2
+                  cursor-pointer
+                  transition-colors
+                  hover:bg-[#063A3A]/[0.02]
+                  ${isSunday ? "bg-[#0D7A80]/10" : " bg-white"}
+                `}
+              >
+                
+                <div className="mb-2 flex justify-between items-start">
+                  <span
+                    className={`
+                      flex
+                      items-center
+                      justify-center
+                      w-7
+                      h-7
+                      text-xs
+                      rounded-full
+                      transition-all
+                      font-semibold
+                      ${!isCurrentMonth ? "text-slate-300" : "text-slate-700"}
+                      ${isToday ? "bg-[#063A3A] text-white font-bold shadow-xs" : ""}
+                    `}
+                  >
+                    {format(day, "d")}
+                  </span>
+                  
+                  {items.length > 3 && (
+                    <span className="text-[10px] bg-slate-100 text-slate-500 font-bold px-1.5 py-0.5 rounded-md">
+                      +{items.length - 3} more
+                    </span>
+                  )}
+                </div>
 
-    <StatusBadge status={content.status} />
+               
+                <div className="space-y-1 overflow-hidden">
+                  {items.slice(0, 3).map((content) => (
+                    <div
+                      key={content.id}
+                      className={`
+                        flex
+                        items-center
+                        justify-between
+                        gap-1
+                        px-2
+                        py-1
+                        rounded-lg
+                        border
+                        transition-all
+                        shadow-3xs
+                        ${{
+                          APPROVED: "bg-emerald-50 text-emerald-700 border-emerald-200/60",
+                          REJECTED: "bg-rose-50 text-rose-700 border-rose-200/60",
+                          PENDING: "bg-amber-50 text-amber-700 border-amber-200/60",
+                          PENDING_LEADER: "bg-orange-50 text-orange-700 border-orange-200/60",
+                        }[content.status] || "bg-slate-50 text-slate-700 border-slate-200"}
+                      `}
+                    >
+                      <span className="text-[10px] font-semibold truncate flex-1">
+                        {content.title}
+                      </span>
+                      <div className="flex-shrink-0 scale-75 origin-right">
+                        <StatusBadge status={content.status} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
-  </div>
+              </div>
+            );
+          })}
+        </div>
 
-))}
+      </div>
 
+    
+      <CreateContentModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onRefresh={fetchContent}
+      />
 
     </div>
   );
-})}
-
-
-      </div>
-
-    </div>
-
-   <CreateContentModal
-  isOpen={showCreateModal}
-  onClose={() => setShowCreateModal(false)}
-  onRefresh={fetchContent}
-/>
-
-  </div>
-);
 };
 
 export default ContentPage;
