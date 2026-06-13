@@ -104,12 +104,39 @@ const ContentDetailsPage = ({ id, onClose, onRefresh }) => {
     }
   };
 
+const handleDownload = async () => {
+  try {
+    const response = await fetch(content.mediaUrl);
+
+    if (!response.ok) {
+      throw new Error("Download failed");
+    }
+
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = content.title || "content";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error(error);
+    toast.error("Failed to download content");
+  }
+};
+
   const handleDelete = async () => { 
     if (!canDelete) {
       toast.error("You cannot delete this content at this stage");
       return;
     }
 
+  
     setIsProcessing(true);
     try {
       await deleteContent(id); 
@@ -188,6 +215,13 @@ const ContentDetailsPage = ({ id, onClose, onRefresh }) => {
             <button onClick={() => window.open(content.mediaUrl, "_blank")} className="flex-1 py-2.5 bg-[#063A3A] text-white rounded-xl flex items-center justify-center gap-2 font-bold text-sm hover:bg-[#0D7A80] transition-all shadow-sm cursor-pointer">
               <ExternalLink size={16} /> View Content
             </button>
+
+             <button
+  onClick={handleDownload}
+  className="flex-1 py-2.5 bg-green-600 text-white rounded-xl flex items-center justify-center gap-2 hover:bg-green-700"
+>
+  Download
+</button>
             {canEdit && (
               <button onClick={() => setShowEditModal(true)} className="flex-1 py-2.5 bg-amber-500 text-white rounded-xl flex items-center justify-center gap-2 font-bold text-sm hover:bg-amber-600 transition-all shadow-sm cursor-pointer">
                 <Edit3 size={16} /> Edit

@@ -83,7 +83,7 @@ return (
   >
     
     <div className="flex justify-center mb-8">
-      <img src="src/assets/Athenura.png" alt="Athenura" className="h-15 object-contain" />
+      <img src="src/assets/Athenura.png" alt="Athenura" className="h-20 object-contain" />
     </div>
 
     

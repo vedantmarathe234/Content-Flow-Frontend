@@ -106,7 +106,7 @@ const RegisterForm = ({ setIsLogin }) => {
        
       <div className="">
   <div className="flex justify-center">
-    <img src="src/assets/Athenura.png" alt="Athenura" className="h-15 object-contain" />
+    <img src="src/assets/Athenura.png" alt="Athenura" className="h-20 object-contain" />
   </div>
 
   <h1 className="text-[1.6rem] font-black tracking-tight mb-2 bg-gradient-to-r from-[#063A3A] to-[#0D7A80] bg-clip-text text-transparent">Create account</h1>
