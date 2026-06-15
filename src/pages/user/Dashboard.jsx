@@ -38,6 +38,8 @@ const UserDashboard = () => {
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
 
+  const [dashboardMode, setDashboardMode] = useState("PERSONAL");
+
   const currentUserId = Number(localStorage.getItem("userId"));
   const role = localStorage.getItem("role");
 
@@ -52,13 +54,19 @@ const UserDashboard = () => {
 
   const fetchDashboardStats = async (teamId = null) => {
     try {
+
       let response;
+
       if (teamId) {
         response = await getTeamDashboardStats(teamId);
+        setDashboardMode("TEAM");
       } else {
         response = await getMyDashboardStats();
+        setDashboardMode("PERSONAL");
       }
+
       setStats(response.data);
+
     } catch (error) {
       console.error(error);
     }
@@ -68,10 +76,7 @@ const UserDashboard = () => {
     try {
       const response = await API.get("/teams/my-team");
       setTeams(response.data);
-      if (response.data.length > 0) {
-        setSelectedTeam(response.data[0]);
-        fetchDashboardStats(response.data[0].id);
-      }
+      setSelectedTeam(null);
     } catch (error) {
       console.error(error);
     }
@@ -91,8 +96,14 @@ const UserDashboard = () => {
     );
   }
 
-  const total = stats.approved + stats.rejected + stats.pendingLeader + stats.pendingAdmin;
+  const pendingCount =
+      stats.pending ??
+      ((stats.pendingLeader || 0) + (stats.pendingAdmin || 0));
 
+  const total =
+      (stats.approved || 0) +
+      (stats.rejected || 0) +
+      pendingCount;
   const statusData = [
     {
       name: "Approved",
@@ -101,7 +112,9 @@ const UserDashboard = () => {
     },
     {
       name: "Pending",
-      value: total > 0 ? Math.round(((stats.pendingLeader + stats.pendingAdmin) * 100) / total) : 0,
+      value: total > 0
+          ? Math.round((pendingCount * 100) / total)
+          : 0,
       color: "#f59e0b"
     },
     {
@@ -115,7 +128,7 @@ const UserDashboard = () => {
 
   return (
     <div className="space-y-6 font-sans text-slate-800">
-      
+
       <div>
         <h1 className="text-xl font-extrabold text-slate-950 tracking-tight">
           User Dashboard
@@ -125,9 +138,23 @@ const UserDashboard = () => {
         </p>
       </div>
 
-      
+
       <div className="flex gap-2 flex-wrap items-center">
+        <button
+            onClick={() => {
+              setSelectedTeam(null);
+              fetchDashboardStats();
+            }}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold tracking-wider uppercase transition-all border cursor-pointer ${
+                dashboardMode === "PERSONAL"
+                    ? "bg-[#063A3A] text-white border-[#063A3A] shadow-sm"
+                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-50"
+            }`}
+        >
+          MY CONTENT
+        </button>
         {teams.map((team) => (
+
           <button
             key={team.id}
             onClick={() => {
@@ -144,9 +171,13 @@ const UserDashboard = () => {
           </button>
         ))}
 
+
+
         {selectedTeam && (
           <div className="text-xs font-semibold text-slate-400 ml-2">
-            Active: <span className="text-slate-600">{selectedTeam.name}</span>
+            {dashboardMode === "PERSONAL"
+                ? "Personal Dashboard"
+                : `Team: ${selectedTeam?.name}`} <span className="text-slate-600">{selectedTeam.name}</span>
             {isLeader && (
               <span className="ml-1.5 text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full uppercase text-[9px] tracking-wider inline-block">
                 Team Leader
@@ -156,11 +187,86 @@ const UserDashboard = () => {
         )}
       </div>
 
-     
+      {dashboardMode === "PERSONAL" && (
+          <div className="bg-gradient-to-r from-[#E8F7F7] via-white to-[#F0FFF4] border border-teal-100 rounded-2xl p-6 flex justify-between items-center shadow-sm">
+
+            <div>
+              <h2 className="text-xl font-bold text-slate-800">
+                Welcome back 👋
+              </h2>
+
+              <p className="text-sm text-slate-500 mt-1">
+                Here's your content overview and progress.
+              </p>
+
+              <div className="mt-5">
+                <p className="text-xs uppercase tracking-wider text-slate-400">
+
+                </p>
+
+                <p className="text-4xl font-extrabold text-emerald-600">
+                  {total > 0
+                      ? Math.round((stats.approved * 100) / total)
+                      : 0}
+                  <span className="text-2xl ml-1">%</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="text-right">
+
+              {total > 0 &&
+              Math.round((stats.approved * 100) / total) >= 75 ? (
+
+                  <>
+                    <div className="text-6xl">🏆</div>
+
+                    <p className="font-bold text-emerald-600 text-xl">
+                      Excellent Contributor
+                    </p>
+
+                    <p className="text-sm text-slate-500">
+                      Keep up the great work!
+                    </p>
+                  </>
+              ) : total > 0 &&
+              Math.round((stats.approved * 100) / total) >= 50 ? (
+
+                  <>
+                    <div className="text-6xl">⭐</div>
+
+                    <p className="font-bold text-amber-500 text-xl">
+                      Good Contributor
+                    </p>
+
+                    <p className="text-sm text-slate-500">
+                      You're doing well.
+                    </p>
+                  </>
+              ) : (
+
+                  <>
+                    <div className="text-6xl">📈</div>
+
+                    <p className="font-bold text-blue-500 text-xl">
+                      Growing Contributor
+                    </p>
+
+                    <p className="text-sm text-slate-500">
+                      Keep creating content.
+                    </p>
+                  </>
+              )}
+
+            </div>
+
+          </div>
+      )}
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {[
           { title: 'Total Content', val: stats.totalContent, icon: <FileText size={16} />, bg: 'bg-slate-100 text-slate-700', border: 'border-l-slate-400' },
-          { title: 'Pending', val: stats.pendingLeader + stats.pendingAdmin, icon: <Clock size={16} />, bg: 'bg-amber-50 text-amber-600 border border-amber-100', border: 'border-l-amber-500' },
+          { title: 'Pending', val: pendingCount, icon: <Clock size={16} />, bg: 'bg-amber-50 text-amber-600 border border-amber-100', border: 'border-l-amber-500' },
           { title: 'Approved', val: stats.approved, icon: <CheckCircle size={16} />, bg: 'bg-teal-50 text-[#0D7A80] border border-teal-100', border: 'border-l-[#0D7A80]' },
           { title: 'Rejected', val: stats.rejected, icon: <XCircle size={16} />, bg: 'bg-rose-50 text-rose-600 border border-rose-100', border: 'border-l-rose-500' },
           { title: 'Approval Rate', val: total > 0 ? `${Math.round((stats.approved * 100) / total)}%` : "0%", icon: <Activity size={16} />, bg: 'bg-[#063A3A]/5 text-[#063A3A] border border-[#063A3A]/10', border: 'border-l-[#063A3A]' }
@@ -183,7 +289,23 @@ const UserDashboard = () => {
           </div>
         ))}
       </div>
+      {dashboardMode === "PERSONAL" && pendingCount > 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex justify-between items-center">
+            <div>
+              <p className="font-bold text-amber-800">
+                You have {pendingCount} content item(s) awaiting review.
+              </p>
 
+              <p className="text-sm text-amber-600">
+                Once approved, they will be published.
+              </p>
+            </div>
+
+            <div className="text-2xl">
+              ⏳
+            </div>
+          </div>
+      )}
   
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-l-4 border-l-[#0D7A80] border-slate-200/80 shadow-sm">
@@ -226,6 +348,8 @@ const UserDashboard = () => {
             </ResponsiveContainer>
           </div>
         </div>
+
+
 
       
         <div className="bg-white p-5 rounded-xl border border-l-4 border-l-[#f59e0b] border-slate-200/80 shadow-sm flex flex-col justify-between">
