@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getContentById, updateContent } from "../../services/contentService";
 import { toast } from "react-hot-toast";
 import { X, FileText, Link2, UploadCloud, Calendar, Layers } from "lucide-react";
@@ -16,9 +16,22 @@ const EditContentModal = ({ id, onClose, onRefresh }) => {
     scheduledDate: ""
   });
 
+  const [showProviderMenu, setShowProviderMenu] = useState(false);
+  const providerMenuRef = useRef(null);
+
   useEffect(() => {
     fetchContent();
   }, [id]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (providerMenuRef.current && !providerMenuRef.current.contains(event.target)) {
+        setShowProviderMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const fetchContent = async () => {
     try {
@@ -149,18 +162,44 @@ const EditContentModal = ({ id, onClose, onRefresh }) => {
             />
           </div>
 
-          <div>
+          <div className="relative" ref={providerMenuRef}>
             <label className="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
               <Layers size={12} className="text-slate-400" /> Upload Provider
             </label>
-            <select
-              value={formData.uploadProvider}
-              onChange={(e) => setFormData({ ...formData, uploadProvider: e.target.value })}
-              className="w-full px-3 py-1.5 border border-slate-200 bg-slate-50 rounded-lg focus:outline-none hover:border-[#0D7A80]/50 focus:ring-2 focus:ring-[#0D7A80]/20 focus:border-[#0D7A80] text-xs font-medium text-slate-800 transition-all cursor-pointer"
+            <div 
+              onClick={() => setShowProviderMenu(!showProviderMenu)}
+              className={`flex items-center border rounded-lg transition-all duration-200 overflow-hidden cursor-pointer ${
+                showProviderMenu 
+                  ? "border-[#0D7A80] bg-white ring-2 ring-[#0D7A80]/20" 
+                  : "border-slate-200 bg-slate-50 hover:border-slate-300"
+              }`}
             >
-              <option value="DRIVE">Google Drive</option>
-              <option value="CLOUDNARY">Upload Media</option>
-            </select>
+              <div className="w-full px-3 py-1.5 text-xs text-slate-800 font-medium select-none bg-transparent">
+                {formData.uploadProvider === "DRIVE" ? "Google Drive" : "Upload Media"}
+              </div>
+              <div className="px-2.5 py-1.5 text-slate-400 border-l border-slate-200 text-[9px] bg-slate-50 shrink-0 self-stretch flex items-center justify-center">
+                ▼
+              </div>
+            </div>
+
+            {showProviderMenu && (
+              <div className="absolute left-0 right-0 mt-1 bg-white border border-slate-100 rounded-lg shadow-xl z-50 py-1 animate-in slide-in-from-top-1.5">
+                <button 
+                  type="button" 
+                  className="w-full text-left px-3 py-1.5 hover:bg-[#0D7A80]/5 hover:text-[#063A3A] font-bold transition-colors text-[10px] uppercase tracking-wider text-slate-600" 
+                  onClick={() => { setFormData({...formData, uploadProvider: "DRIVE"}); setShowProviderMenu(false); }}
+                >
+                  Google Drive
+                </button>
+                <button 
+                  type="button" 
+                  className="w-full text-left px-3 py-1.5 hover:bg-[#0D7A80]/5 hover:text-[#063A3A] font-bold transition-colors text-[10px] uppercase tracking-wider text-slate-600" 
+                  onClick={() => { setFormData({...formData, uploadProvider: "CLOUDNARY"}); setShowProviderMenu(false); }}
+                >
+                  Upload Media
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="pt-1">

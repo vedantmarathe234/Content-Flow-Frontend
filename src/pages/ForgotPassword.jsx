@@ -72,7 +72,7 @@ const ForgotPassword = () => {
             {loading ? "Sending Link..." : "Send Reset Link"}
           </button>
 
-          {/* Footer Link */}
+        
           <div className="text-center pt-2">
             <Link
               to="/auth"

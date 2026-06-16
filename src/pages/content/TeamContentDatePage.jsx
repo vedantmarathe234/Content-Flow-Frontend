@@ -48,7 +48,7 @@ const TeamContentDatePage = () => {
   return (
     <div className="w-full font-sans text-slate-800 p-2 min-h-screen bg-slate-50/50">
       
-     
+      
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <button
@@ -59,7 +59,7 @@ const TeamContentDatePage = () => {
           </button>
           <div>
             <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">
-              Team {teamName} Content
+              Team: {teamName} Content
             </h1>
             <p className="text-sm text-slate-500 mt-0.5">{date}</p>
           </div>
@@ -87,7 +87,7 @@ const TeamContentDatePage = () => {
       )}
 
       
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-sm border-y border-r border-slate-200/80 border-l-[4px] border-l-[#0D7A80] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>

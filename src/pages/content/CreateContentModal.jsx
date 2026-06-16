@@ -62,7 +62,7 @@ const CreateContentModal = ({ isOpen, onClose, onRefresh, selectedDate }) => {
 
   return (
     <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-slate-100">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-l-[4px] border-l-[#0D7A80] border-slate-100">
         
         <div className="px-6 py-4 border-b border-slate-100 bg-[#063A3A]/5 flex justify-between items-center">
           <h2 className="text-base font-bold text-[#063A3A]">Create New Content</h2>
@@ -160,7 +160,7 @@ const CreateContentModal = ({ isOpen, onClose, onRefresh, selectedDate }) => {
               type="button" 
               onClick={onClose} 
               disabled={isProcessing}
-              className="flex-1 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
+              className="flex-1 py-2 border border-slate-200  rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors cursor-pointer"
             >
               Cancel
             </button>

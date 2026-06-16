@@ -58,7 +58,7 @@ const ResetPassword = () => {
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 font-sans text-slate-800 animate-in fade-in duration-300">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
         
-        {/* Logo & Header */}
+      
         <div className="text-center mb-8">
           <div className="w-14 h-14 bg-[#063A3A] rounded-2xl mx-auto flex items-center justify-center text-white text-2xl font-black shadow-md shadow-[#063A3A]/20">
             C

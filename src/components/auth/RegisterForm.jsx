@@ -1,93 +1,86 @@
-
+import React, { useState, useEffect, useRef } from "react";
 import { registerUser } from "../../services/authService";
 import toast from "react-hot-toast";
-import { FiEye, FiEyeOff, FiChevronDown } from "react-icons/fi";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
 import API from "../../services/api";
 
 const RegisterForm = ({ setIsLogin }) => {
-
   const [showPassword, setShowPassword] = useState(false);
-//   const [emailError, setEmailError] = useState("");
   const [departments, setDepartments] = useState([]);
 
   const [formData, setFormData] = useState({
-  name: "",
-  email: "",
-  password: "",
-  role: "INTERN",
-  departmentName: "",
-  secretKey: ""
-});
+    name: "",
+    email: "",
+    password: "",
+    role: "INTERN",
+    departmentName: "",
+    secretKey: ""
+  });
 
-  
+  const [showRoleMenu, setShowRoleMenu] = useState(false);
+  const [showDeptMenu, setShowDeptMenu] = useState(false);
+
+  const roleMenuRef = useRef(null);
+  const deptMenuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (roleMenuRef.current && !roleMenuRef.current.contains(event.target)) {
+        setShowRoleMenu(false);
+      }
+      if (deptMenuRef.current && !deptMenuRef.current.contains(event.target)) {
+        setShowDeptMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleChange = (e) => {
-  const { name, value } = e.target;
+    const { name, value } = e.target;
 
-  if (name === "role" && value === "ADMIN") {
+    if (name === "role" && value === "ADMIN") {
+      setFormData({
+        ...formData,
+        role: value,
+        departmentName: ""
+      });
+      return;
+    }
+
     setFormData({
       ...formData,
-      role: value,
-      departmentName: ""
+      [name]: value
     });
-
-    return;
-  }
-
-  setFormData({
-    ...formData,
-    [name]: value
-  });
-};
-
-
+  };
 
   const handleRegister = async (e) => {
+    e.preventDefault();
+    if (formData.role === "INTERN" && !formData.departmentName) {
+      toast.error("Please select a department");
+      return;
+    }
 
-  e.preventDefault();
-  if (
-  formData.role === "INTERN" &&
-  !formData.departmentName
-) {
-  toast.error("Please select a department");
-  return;
-}
+    try {
+      await registerUser(formData);
+      toast.success("Registration Successful");
+      setIsLogin(true);
+    } catch {
+      toast.error("Registration Failed");
+    }
+  };
 
-  try {
-
-    await registerUser(formData);
-
-    toast.success(
-      "Registration Successful"
-    );
-
-    setIsLogin(true);
-
-  } catch {
-
-    toast.error(
-      "Registration Failed"
-    );
-
-  }
-
-};
-
- useEffect(() => {
+  useEffect(() => {
     const fetchDepartments = async () => {
       try {
         const response = await API.get("/departments/public");
-
-        setDepartments(response.data);
+        setDepartments(response.data || []);
       } catch (error) {
         console.error("Failed to fetch departments", error);
-
         toast.error("Unable to load departments");
       }
     };
-
     fetchDepartments();
   }, []);
 
@@ -98,196 +91,189 @@ const RegisterForm = ({ setIsLogin }) => {
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 30 }}
       transition={{ duration: 0.35 }}
-     className="w-full max-w-[380px] px-2"
+      className="w-full max-w-[380px] px-2"
     >
-
-      <div className="">
-
-       
-      <div className="">
-  <div className="flex justify-center">
-    <img src="src/assets/Athenura.png" alt="Athenura" className="h-20 object-contain" />
-  </div>
-
-  <h1 className="text-[1.6rem] font-black tracking-tight mb-2 bg-gradient-to-r from-[#063A3A] to-[#0D7A80] bg-clip-text text-transparent">Create account</h1>
-  
-</div>
-
+     
+      <div className="mb-4">
+        <div className="flex justify-center">
+          <img src="src/assets/Athenura.png" alt="Athenura" className="h-20 object-contain" />
+        </div>
+        <h1 className="text-[1.6rem] font-black tracking-tight mb-2 bg-gradient-to-r from-[#063A3A] to-[#0D7A80] bg-clip-text text-transparent text-center">
+          Create account
+        </h1>
       </div>
 
+      <form onSubmit={handleRegister} className="space-y-1.5 flex-1">
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+            Full Name
+          </label>
+          <input
+            type="text"
+            name="name"
+            placeholder="Enter full name"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm outline-none transition-all focus:border-[#0A5B63] focus:bg-white focus:ring-4 focus:ring-[#0A5B63]/8 placeholder:text-slate-300"
+          />
+        </div>
 
-     
-      
-                  <form onSubmit={handleRegister} className="space-y-1.5 flex-1">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                        Full Name
-                      </label>
-      
-                      <input
-                        type="text"
-                        name="name"
-                        placeholder="Enter full name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        className="w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm outline-none transition-all
-  focus:border-[#0A5B63] focus:bg-white focus:ring-4 focus:ring-[#0A5B63]/8 placeholder:text-slate-300"
-                      />
-                    </div>
-      
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                        Email
-                      </label>
-      
-                      <input
-                        type="email"
-                        name="email"
-                        placeholder="Enter email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm outline-none transition-all
-  focus:border-[#0A5B63] focus:bg-white focus:ring-4 focus:ring-[#0A5B63]/8 placeholder:text-slate-300"
-                      />
-      
-                      
-                    </div>
-      
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                        Password
-                      </label>
-      
-                      <div className="relative">
-                        <input
-                          type={showPassword ? "text" : "password"}
-                          name="password"
-                          placeholder="Password"
-                          value={formData.password}
-                          onChange={handleChange}
-                          className="w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm outline-none transition-all
-  focus:border-[#0A5B63] focus:bg-white focus:ring-4 focus:ring-[#0A5B63]/8 placeholder:text-slate-300"
-                        />
-      
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
-                        >
-                          {showPassword ? <FiEyeOff /> : <FiEye />}
-                        </button>
-                      </div>
-                    </div>
-      
-                    <div
-                      className={
-                        formData.role === "ADMIN"
-                          ? "grid grid-cols-1"
-                          : "grid grid-cols-2 gap-4"
-                      }
-                    >
-                     
-                      <div>
-                        <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                          Role
-                        </label>
-      
-                        <div className="relative">
-                          <select
-                            name="role"
-                            value={formData.role}
-                            onChange={handleChange}
-                            className="w-full border border-slate-200 bg-slate-50 appearance-none rounded-xl px-4 py-2.5 text-sm outline-none transition-all
-                            focus:border-[#0A5B63] focus:bg-white focus:ring-4 focus:ring-[#0A5B63]/8 placeholder:text-slate-300"
-                          >
-                            <option value="INTERN">INTERN</option>
-                            <option value="ADMIN">ADMIN</option>
-                          </select>
-      
-                          <FiChevronDown
-                            size={18}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
-                          />
-                        </div>
-                      </div>
-      
-                     
-                      {formData.role === "INTERN" && (
-                        <div>
-                          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                            Department
-                          </label>
-      
-                          <div className="relative">
-                            <select
-                              name="departmentName"
-                              value={formData.departmentName}
-                              onChange={handleChange}
-                              className="w-full border border-slate-200 bg-slate-50 appearance-none rounded-xl px-4 py-2.5 text-sm outline-none transition-all
-  focus:border-[#0A5B63] focus:bg-white focus:ring-4 focus:ring-[#0A5B63]/8 placeholder:text-slate-300"
-                            >
-                              <option value="">Select Department</option>
-      
-                              {departments.map((dept) => (
-                                <option key={dept.id} value={dept.name}>
-                                  {dept.name}
-                                </option>
-                              ))}
-                            </select>
-      
-                            <FiChevronDown
-                              size={18}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none"
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-      
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-                        {formData.role === "ADMIN"
-                          ? "Admin Secret Key"
-                          : "Department Key"}
-                      </label>
-      
-                      <input
-                        type="text"
-                        name="secretKey"
-                        placeholder={
-                          formData.role === "ADMIN"
-                            ? "Enter admin secret key"
-                            : "Enter department key"
-                        }
-                        value={formData.secretKey}
-                        onChange={handleChange}
-                       className="w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm outline-none transition-all
-  focus:border-[#0A5B63] focus:bg-white focus:ring-4 focus:ring-[#0A5B63]/8 placeholder:text-slate-300"
-                      />
-                    </div>
-      
-                    <button
-                      type="submit"
-                      className="w-full py-2.5 rounded-xl text-sm font-semibold text-white tracking-wide transition-all hover:opacity-90 active:scale-[0.99]"
-style={{ background: "linear-gradient(135deg, #0A5B63 0%, #1A7A84 100%)", boxShadow: "0 4px 14px rgba(10,91,99,0.35)" }}
-      >
-                      Register →
-                    </button>
-                  </form>
-              
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+            Email
+          </label>
+          <input
+            type="email"
+            name="email"
+            placeholder="Enter email"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm outline-none transition-all focus:border-[#0A5B63] focus:bg-white focus:ring-4 focus:ring-[#0A5B63]/8 placeholder:text-slate-300"
+          />
+        </div>
 
-  <p className="text-center text-xs text-slate-400 mt-2">
-  Already have an account?{" "}
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+            Password
+          </label>
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm outline-none transition-all focus:border-[#0A5B63] focus:bg-white focus:ring-4 focus:ring-[#0A5B63]/8 placeholder:text-slate-300"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 cursor-pointer"
+            >
+              {showPassword ? <FiEyeOff /> : <FiEye />}
+            </button>
+          </div>
+        </div>
 
-  <button
-    type="button"
-    onClick={() => setIsLogin(true)}
-    className="text-[#0A5B63] font-semibold hover:underline"
-  >
-     Login
-  </button>
-</p>
+        <div className={formData.role === "ADMIN" ? "grid grid-cols-1" : "grid grid-cols-2 gap-4"}>
+          <div className="relative" ref={roleMenuRef}>
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+              Role
+            </label>
+            <div 
+              onClick={() => setShowRoleMenu(!showRoleMenu)}
+              className={`flex items-center border rounded-xl transition-all duration-200 overflow-hidden cursor-pointer select-none ${
+                showRoleMenu 
+                  ? "border-[#0A5B63] bg-white ring-4 ring-[#0A5B63]/8" 
+                  : "border-slate-200 bg-slate-50 hover:border-slate-300"
+              }`}
+            >
+              <div className="w-full px-4 py-2.5 text-sm text-slate-700 font-medium bg-transparent">
+                {formData.role}
+              </div>
+              <div className="px-3.5 py-2.5 text-slate-400 border-l border-slate-200 text-[10px] shrink-0 self-stretch flex items-center justify-center bg-transparent">
+                ▼
+              </div>
+            </div>
 
+            {showRoleMenu && (
+              <div className="absolute left-0 right-0 mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl z-50 py-1.5 animate-in slide-in-from-top-2">
+                <button 
+                  type="button" 
+                  className="w-full text-left px-4 py-2 hover:bg-[#0D7A80]/5 hover:text-[#063A3A] font-bold transition-colors text-xs uppercase tracking-wider text-slate-600 cursor-pointer" 
+                  onClick={() => { handleChange({ target: { name: "role", value: "INTERN" } }); setShowRoleMenu(false); }}
+                >
+                  INTERN
+                </button>
+                <button 
+                  type="button" 
+                  className="w-full text-left px-4 py-2 hover:bg-[#0D7A80]/5 hover:text-[#063A3A] font-bold transition-colors text-xs uppercase tracking-wider text-slate-600 cursor-pointer" 
+                  onClick={() => { handleChange({ target: { name: "role", value: "ADMIN" } }); setShowRoleMenu(false); }}
+                >
+                  ADMIN
+                </button>
+              </div>
+            )}
+          </div>
+
+          {formData.role === "INTERN" && (
+            <div className="relative" ref={deptMenuRef}>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                Department
+              </label>
+              <div 
+                onClick={() => setShowDeptMenu(!showDeptMenu)}
+                className={`flex items-center border rounded-xl transition-all duration-200 overflow-hidden cursor-pointer select-none ${
+                  showDeptMenu 
+                    ? "border-[#0A5B63] bg-white ring-4 ring-[#0A5B63]/8" 
+                    : "border-slate-200 bg-slate-50 hover:border-slate-300"
+                }`}
+              >
+                <div className="w-full px-4 py-2.5 text-sm text-slate-700 font-medium bg-transparent truncate">
+                  {formData.departmentName || "Select Department"}
+                </div>
+                <div className="px-3.5 py-2.5 text-slate-400 border-l border-slate-200 text-[10px] shrink-0 self-stretch flex items-center justify-center bg-transparent">
+                  ▼
+                </div>
+              </div>
+
+              {showDeptMenu && (
+                <div className="absolute left-0 right-0 mt-1.5 bg-white border border-slate-100 rounded-xl shadow-xl z-50 max-h-48 overflow-y-auto py-1.5 animate-in slide-in-from-top-2">
+                  {departments.length === 0 ? (
+                    <div className="w-full text-left px-4 py-2 text-xs font-semibold text-slate-400 select-none">
+                      No Department Available
+                    </div>
+                  ) : (
+                    departments.map((dept) => (
+                      <button 
+                        key={dept.id}
+                        type="button" 
+                        className="w-full text-left px-4 py-2 hover:bg-[#0D7A80]/5 hover:text-[#063A3A] font-bold transition-colors text-xs uppercase tracking-wider text-slate-600 cursor-pointer" 
+                        onClick={() => { handleChange({ target: { name: "departmentName", value: dept.name } }); setShowDeptMenu(false); }}
+                      >
+                        {dept.name}
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+            {formData.role === "ADMIN" ? "Admin Secret Key" : "Department Key"}
+          </label>
+          <input
+            type="text"
+            name="secretKey"
+            placeholder={formData.role === "ADMIN" ? "Enter admin secret key" : "Enter department key"}
+            value={formData.secretKey}
+            onChange={handleChange}
+            className="w-full border border-slate-200 bg-slate-50 rounded-xl px-4 py-2.5 text-sm outline-none transition-all focus:border-[#0A5B63] focus:bg-white focus:ring-4 focus:ring-[#0A5B63]/8 placeholder:text-slate-300"
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="w-full py-2.5 rounded-xl text-sm font-semibold text-white tracking-wide transition-all hover:opacity-90 active:scale-[0.99] cursor-pointer"
+          style={{ background: "linear-gradient(135deg, #0A5B63 0%, #1A7A84 100%)", boxShadow: "0 4px 14px rgba(10,91,99,0.35)" }}
+        >
+          Register →
+        </button>
+      </form>
+
+      <p className="text-center text-xs text-slate-400 mt-2">
+        Already have an account?{" "}
+        <button
+          type="button"
+          onClick={() => setIsLogin(true)}
+          className="text-[#0A5B63] font-semibold hover:underline cursor-pointer"
+        >
+          Login
+        </button>
+      </p>
     </motion.div>
   );
 };

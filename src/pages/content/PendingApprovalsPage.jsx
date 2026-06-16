@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from 'react';
 import { getPendingContent } from "../../services/contentService";
 import { useNavigate } from "react-router-dom";
 import StatusBadge from "../content/StatusBadge";
@@ -24,9 +24,9 @@ const PendingApprovalsPage = () => {
   };
 
   return (
-    <div className="w-full font-sans text-slate-800 animate-in fade-in duration-300">
+    <div className="w-full font-sans p-2 text-slate-800 animate-in fade-in duration-300">
       
-     
+      
       <div className="flex items-center gap-3 mb-6">
         <button 
           onClick={() => navigate(-1)} 
@@ -39,11 +39,13 @@ const PendingApprovalsPage = () => {
       </div>
 
       {contents.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center text-slate-500 font-medium">
-          No pending approvals available at the moment.
-        </div>
+        <div className="bg-white p-6 rounded-2xl shadow-sm border-y border-r border-slate-200/80 border-l-[4px] border-l-[#0D7A80] flex items-center justify-center min-h-[120px]">
+  <p className="text-slate-500 font-medium">
+    No pending approvals available at the moment.
+  </p>
+</div>
       ) : (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border-y border-r border-slate-200/80 overflow-hidden" style={{ borderLeft: '4px solid #0D7A80' }}>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>

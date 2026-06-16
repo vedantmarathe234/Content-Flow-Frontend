@@ -81,11 +81,9 @@ const TeamCalendarPage = () => {
 
           <div>
             <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">
-              Team {teamName} Calendar
+              Team:  {teamName} Calendar
             </h1>
-            <p className="text-sm text-slate-500">
-              Manage scheduled team content
-            </p>
+        
           </div>
         </div>
 
@@ -121,7 +119,7 @@ const TeamCalendarPage = () => {
       </div>
 
      
-      <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm">
+      <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-sm" style={{ borderLeft: '4px solid #063A3A' }}>
         
        
         <div className="grid grid-cols-7 bg-[#063A3A]/40  border-b border-slate-200/80">

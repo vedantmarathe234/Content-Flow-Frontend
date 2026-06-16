@@ -22,16 +22,6 @@ import API from "../../services/api";
 import { getMyDashboardStats, getTeamDashboardStats } from "../../services/contentService";
 import { getRecentActivity } from "../../services/notificationService";
 
-const activityData = [
-  { name: 'Mon', count: 2 },
-  { name: 'Tue', count: 4 },
-  { name: 'Wed', count: 3 },
-  { name: 'Thu', count: 5 },
-  { name: 'Fri', count: 4 },
-  { name: 'Sat', count: 6 },
-  { name: 'Sun', count: 5 }
-];
-
 const UserDashboard = () => {
   const [stats, setStats] = useState(null);
   const [activities, setActivities] = useState([]);
@@ -54,7 +44,6 @@ const UserDashboard = () => {
 
   const fetchDashboardStats = async (teamId = null) => {
     try {
-
       let response;
 
       if (teamId) {
@@ -66,7 +55,6 @@ const UserDashboard = () => {
       }
 
       setStats(response.data);
-
     } catch (error) {
       console.error(error);
     }
@@ -104,6 +92,7 @@ const UserDashboard = () => {
       (stats.approved || 0) +
       (stats.rejected || 0) +
       pendingCount;
+
   const statusData = [
     {
       name: "Approved",
@@ -112,9 +101,7 @@ const UserDashboard = () => {
     },
     {
       name: "Pending",
-      value: total > 0
-          ? Math.round((pendingCount * 100) / total)
-          : 0,
+      value: total > 0 ? Math.round((pendingCount * 100) / total) : 0,
       color: "#f59e0b"
     },
     {
@@ -123,6 +110,24 @@ const UserDashboard = () => {
       color: "#ef4444"
     }
   ];
+
+
+  const rawWeeklyActivity = stats.weeklyActivity || stats.weekly_activity || [];
+  
+  const chartData = rawWeeklyActivity.length > 0 
+    ? rawWeeklyActivity.map(day => ({
+        name: day.day || day.dayName || "",
+        count: Number(day.count || 0)
+      }))
+    : [
+        { name: 'Mon', count: 0 },
+        { name: 'Tue', count: 0 },
+        { name: 'Wed', count: 0 },
+        { name: 'Thu', count: 0 },
+        { name: 'Fri', count: 0 },
+        { name: 'Sat', count: 0 },
+        { name: 'Sun', count: 0 }
+      ];
 
   const isLeader = selectedTeam?.teamLeaderId === currentUserId;
 
@@ -154,7 +159,6 @@ const UserDashboard = () => {
           MY CONTENT
         </button>
         {teams.map((team) => (
-
           <button
             key={team.id}
             onClick={() => {
@@ -170,8 +174,6 @@ const UserDashboard = () => {
             {team.name}
           </button>
         ))}
-
-
 
         {selectedTeam && (
           <div className="text-xs font-semibold text-slate-400 ml-2">
@@ -200,64 +202,45 @@ const UserDashboard = () => {
               </p>
 
               <div className="mt-5">
-                <p className="text-xs uppercase tracking-wider text-slate-400">
-
-                </p>
-
                 <p className="text-4xl font-extrabold text-emerald-600">
-                  {total > 0
-                      ? Math.round((stats.approved * 100) / total)
-                      : 0}
+                  {total > 0 ? Math.round((stats.approved * 100) / total) : 0}
                   <span className="text-2xl ml-1">%</span>
                 </p>
               </div>
             </div>
 
             <div className="text-right">
-
-              {total > 0 &&
-              Math.round((stats.approved * 100) / total) >= 75 ? (
-
+              {total > 0 && Math.round((stats.approved * 100) / total) >= 75 ? (
                   <>
                     <div className="text-6xl">🏆</div>
-
                     <p className="font-bold text-emerald-600 text-xl">
                       Excellent Contributor
                     </p>
-
                     <p className="text-sm text-slate-500">
                       Keep up the great work!
                     </p>
                   </>
-              ) : total > 0 &&
-              Math.round((stats.approved * 100) / total) >= 50 ? (
-
+              ) : total > 0 && Math.round((stats.approved * 100) / total) >= 50 ? (
                   <>
                     <div className="text-6xl">⭐</div>
-
                     <p className="font-bold text-amber-500 text-xl">
                       Good Contributor
                     </p>
-
                     <p className="text-sm text-slate-500">
                       You're doing well.
                     </p>
                   </>
               ) : (
-
                   <>
                     <div className="text-6xl">📈</div>
-
                     <p className="font-bold text-blue-500 text-xl">
                       Growing Contributor
                     </p>
-
                     <p className="text-sm text-slate-500">
                       Keep creating content.
                     </p>
                   </>
               )}
-
             </div>
 
           </div>
@@ -289,21 +272,18 @@ const UserDashboard = () => {
           </div>
         ))}
       </div>
+
       {dashboardMode === "PERSONAL" && pendingCount > 0 && (
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex justify-between items-center">
             <div>
               <p className="font-bold text-amber-800">
                 You have {pendingCount} content item(s) awaiting review.
               </p>
-
               <p className="text-sm text-amber-600">
                 Once approved, they will be published.
               </p>
             </div>
-
-            <div className="text-2xl">
-              ⏳
-            </div>
+            <div className="text-2xl">⏳</div>
           </div>
       )}
   
@@ -314,7 +294,8 @@ const UserDashboard = () => {
           </h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={activityData}>
+              
+              <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="userColorCount" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#0D7A80" stopOpacity={0.15} />
@@ -349,9 +330,6 @@ const UserDashboard = () => {
           </div>
         </div>
 
-
-
-      
         <div className="bg-white p-5 rounded-xl border border-l-4 border-l-[#f59e0b] border-slate-200/80 shadow-sm flex flex-col justify-between">
           <div>
             <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
@@ -391,7 +369,6 @@ const UserDashboard = () => {
         </div>
       </div>
 
-    
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-l-4 border-l-slate-400 border-slate-200/80 shadow-sm">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
@@ -415,7 +392,6 @@ const UserDashboard = () => {
           </div>
         </div>
 
-        
         {role === "TEAM_LEADER" && (
           <div className="bg-white p-5 rounded-xl border border-l-4 border-l-amber-500 border-slate-200/80 shadow-sm flex flex-col justify-center">
             <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">

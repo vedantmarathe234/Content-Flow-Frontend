@@ -2,17 +2,75 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../../services/api';
 import { FiEdit2, FiTrash2, FiArrowLeft } from 'react-icons/fi';
+import { X, AlertTriangle } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, itemName }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-xs flex items-center justify-center p-4 font-sans animate-in fade-in duration-200"
+      onClick={onClose}
+    >
+      <div 
+        className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden border border-l-[4px] border-l-[#0D7A80] border-slate-100 flex flex-col p-6 animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-end mb-2">
+          <button 
+            type="button"
+            onClick={onClose}
+            className="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-50 transition-colors cursor-pointer"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="mx-auto flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-rose-50 border border-rose-100 text-rose-500 mb-4">
+          <AlertTriangle size={22} />
+        </div>
+
+        <div className="text-center mb-6">
+          <h3 className="text-base font-bold text-slate-900 leading-snug">
+            Delete Department Confirmation
+          </h3>
+          <p className="text-xs text-slate-500 font-medium mt-2 leading-relaxed">
+            Are you absolutely sure you want to delete <span className="font-bold text-slate-800">"{itemName || "this department"}"</span>? All associated internal structures will be affected. This action is permanent.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 py-2 px-4 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 active:scale-[0.98] transition-all cursor-pointer"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="flex-1 py-2 px-4 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm shadow-rose-600/10 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <FiTrash2 size={13} />
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const CreateDepartment = () => {
     const navigate = useNavigate();
     const [departments, setDepartments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
-
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
-
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deptToDelete, setDeptToDelete] = useState(null);
     const [formData, setFormData] = useState({ name: '', secretKey: '' });
     const [editData, setEditData] = useState({ id: '', name: '', secretKey: '' });
 
@@ -103,16 +161,23 @@ const CreateDepartment = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this department?")) return;
-        
+    const handleDeleteClick = (dept) => {
+        setDeptToDelete(dept);
+        setIsDeleteModalOpen(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deptToDelete) return;
         try {
-            await API.delete(`/departments/delete/${id}`);
+            await API.delete(`/departments/delete/${deptToDelete.id}`);
             toast.success("Department deleted successfully!");
             loadDepartments();
         } catch (err) {
             console.error(err);
             toast.error("Failed to delete department!");
+        } finally {
+            setIsDeleteModalOpen(false);
+            setDeptToDelete(null);
         }
     };
 
@@ -141,7 +206,7 @@ const CreateDepartment = () => {
                 </button>
             </div>
 
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border-y border-r border-slate-200/80 border-l-[4px] border-l-[#0D7A80] overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -161,7 +226,7 @@ const CreateDepartment = () => {
                             ) : departments.map((dept) => (
                                 <tr 
                                     key={dept.id} 
-                                    className="hover:bg-[#0D7A80]/10 transition-colors cursor-pointer border-l-4 border-l-transparent hover:border-l-[#0D7A80]"
+                                    className="hover:bg-[#0D7A80]/10 transition-colors cursor-pointer"
                                     onClick={() => navigate(`/admin/department/${dept.id}`)}
                                 >
                                     <td className="py-4 px-6 text-[#063A3A] font-bold">{dept.name}</td>
@@ -174,7 +239,10 @@ const CreateDepartment = () => {
                                                 <button onClick={() => openEditModal(dept.id, dept.name, dept.secretKey)} className="text-[#0D7A80] hover:text-[#063A3A] p-1.5 hover:bg-slate-50 rounded-md transition-colors cursor-pointer">
                                                     <FiEdit2 size={15} />
                                                 </button>
-                                                <button onClick={() => handleDelete(dept.id)} className="text-red-500 hover:text-red-700 p-1.5 hover:bg-red-50 rounded-md transition-colors cursor-pointer">
+                                                <button
+                                                    onClick={() => handleDeleteClick(dept)} 
+                                                    className="text-red-500 hover:text-red-700 p-1.5 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
+                                                >
                                                     <FiTrash2 size={15} />
                                                 </button>
                                             </div>
@@ -187,7 +255,6 @@ const CreateDepartment = () => {
                 </div>
             </div>
 
-            {/* Create Modal */}
             {isCreateOpen && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
                     <form onSubmit={handleCreateSubmit} className="bg-white p-6 rounded-2xl w-full max-w-md shadow-xl border border-slate-100 space-y-4">
@@ -210,10 +277,9 @@ const CreateDepartment = () => {
                 </div>
             )}
 
-            {/* Edit Modal */}
             {isEditOpen && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <form onSubmit={handleEditSubmit} className="bg-white p-6 rounded-2xl w-full max-w-md shadow-xl border border-slate-100 space-y-4">
+                    <form onSubmit={handleEditSubmit} className="bg-white p-6 rounded-2xl w-full max-w-md shadow-xl border-l-[4px] border-l-[#0D7A80] border-slate-100 space-y-4">
                         <h3 className="text-lg font-bold text-[#063A3A]">Edit Department</h3>
                         <div className="space-y-1">
                             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Name</label>
@@ -232,6 +298,13 @@ const CreateDepartment = () => {
                     </form>
                 </div>
             )}
+
+            <DeleteConfirmationModal
+                isOpen={isDeleteModalOpen}
+                onClose={() => setIsDeleteModalOpen(false)}
+                onConfirm={handleConfirmDelete}
+                itemName={deptToDelete?.name}
+            />
         </div>
     );
 };

@@ -6,6 +6,7 @@ import { toast } from "react-hot-toast";
 import API from "../../services/api";
 import { markNotificationsByContent } from "../../services/notificationService";
 import EditContentModal from "./EditContentModal";
+import MediaPreviewModal from "../../components/MediaPreviewModal";
 
 const ContentDetailsPage = ({ id, onClose, onRefresh }) => {
   const [loading, setLoading] = useState(true);
@@ -17,6 +18,7 @@ const ContentDetailsPage = ({ id, onClose, onRefresh }) => {
   const [leaderRejectReason, setLeaderRejectReason] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showMediaPreview, setShowMediaPreview] = useState(false);
 
   const role = localStorage.getItem("role");
   const currentUserId = localStorage.getItem("userId") ? Number(localStorage.getItem("userId")) : null;
@@ -212,7 +214,10 @@ const handleDownload = async () => {
 
         <div className="mt-6 space-y-3">
           <div className="flex gap-2">
-            <button onClick={() => window.open(content.mediaUrl, "_blank")} className="flex-1 py-2.5 bg-[#063A3A] text-white rounded-xl flex items-center justify-center gap-2 font-bold text-sm hover:bg-[#0D7A80] transition-all shadow-sm cursor-pointer">
+            <button 
+              onClick={() => setShowMediaPreview(true)} 
+              className="flex-1 py-2.5 bg-[#063A3A] text-white rounded-xl flex items-center justify-center gap-2 font-bold text-sm hover:bg-[#0D7A80] transition-all shadow-sm cursor-pointer"
+            >
               <ExternalLink size={16} /> View Content
             </button>
 
@@ -328,6 +333,13 @@ const handleDownload = async () => {
           }}
         />
       )}
+
+      <MediaPreviewModal
+        isOpen={showMediaPreview}
+        onClose={() => setShowMediaPreview(false)}
+        mediaUrl={content.mediaUrl}
+        title={content.title}
+      />
     </div>
   );
 };
