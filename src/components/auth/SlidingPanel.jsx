@@ -9,9 +9,8 @@ const SlidingPanel = ({ isLogin, setIsLogin }) => {
       className="absolute top-0 left-0 w-1/2 h-full z-20 hidden lg:flex font-sans"
     >
       <div
-        className="relative w-full h-full overflow-hidden text-white flex flex-col justify-between p-12 select-none"
+        className="relative w-full h-full overflow-hidden text-white flex flex-col justify-between p-8 xl:p-12 select-none"
         style={{
-         
           background: "linear-gradient(160deg, #031C1C 0%, #063A3A 50%, #095252 100%)"
         }}
       >
@@ -40,7 +39,7 @@ const SlidingPanel = ({ isLogin, setIsLogin }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className="relative z-10 flex flex-col gap-5 mt-4"
+            className="relative z-10 flex flex-col gap-4 mt-2 shrink-0"
           >
             <div className="inline-flex items-center gap-2 w-fit bg-white/5 border border-white/10 px-3 py-1 rounded-full backdrop-blur-md">
               <div className="w-1.5 h-1.5 rounded-full bg-[#0D7A80] animate-pulse" />
@@ -49,13 +48,13 @@ const SlidingPanel = ({ isLogin, setIsLogin }) => {
               </span>
             </div>
 
-            <h2 className="text-[2.2rem] font-extrabold leading-[1.15] tracking-tight text-white drop-shadow-sm">
+            <h2 className="text-[2rem] xl:text-[2.4rem] font-extrabold leading-[1.15] tracking-tight text-white drop-shadow-sm">
               {isLogin
                 ? <>Plan.<br />Collaborate.<br />Deliver.</>
                 : <>Build better<br />content.<br />Together.</>}
             </h2>
 
-            <p className="text-white/60 text-sm leading-relaxed max-w-[280px] font-medium">
+            <p className="text-white/60 text-xs xl:text-sm leading-relaxed max-w-[280px] font-medium">
               {isLogin
                 ? "Keep your content operations organized, approved and delivered on time."
                 : "Join your team, manage workflows, and deliver content with confidence."}
@@ -63,7 +62,6 @@ const SlidingPanel = ({ isLogin, setIsLogin }) => {
           </motion.div>
         </AnimatePresence>
 
-    
         <AnimatePresence mode="wait">
           <motion.div
             key={isLogin ? "img-login" : "img-register"}
@@ -71,26 +69,27 @@ const SlidingPanel = ({ isLogin, setIsLogin }) => {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.96 }}
             transition={{ duration: 0.4 }}
-            className="relative z-10 flex justify-center my-auto py-4"
+            className="relative z-10 flex-1 min-h-0 flex items-center justify-center py-4 md:py-6"
           >
             <img
               src={isLogin ? "src/assets/Team-bro.png" : "src/assets/Login-bro.png"}
               alt="Auth Illustration"
-              className="w-[340px] h-[240px] object-contain transition-all duration-300"
+              className="w-full max-w-[280px] xl:max-w-[340px] max-h-[22vh] xl:max-h-[26vh] object-contain transition-all duration-300"
               style={{ filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.15)) brightness(1.02)" }}
             />
           </motion.div>
         </AnimatePresence>
 
-        <div className="relative z-10 flex gap-10 border-t border-white/10 pt-3">
+       
+        <div className="relative z-10 flex gap-6 xl:gap-10 border-t border-white/10 pt-4 shrink-0">
           {[
             { label: "Active Teams", value: "500+" },
             { label: "Platform Uptime", value: "99.9%" },
             { label: "Workflows Done", value: "12k+" },
           ].map(({ label, value }) => (
             <div key={label} className="transition-transform hover:translate-y-[-2px] duration-200">
-              <p className="text-white text-base font-black tracking-tight">{value}</p>
-              <p className="text-white/40 text-[10px] font-bold uppercase tracking-wider mt-0.5">{label}</p>
+              <p className="text-white text-sm xl:text-base font-black tracking-tight">{value}</p>
+              <p className="text-white/40 text-[9px] xl:text-[10px] font-bold uppercase tracking-wider mt-0.5">{label}</p>
             </div>
           ))}
         </div>

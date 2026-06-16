@@ -13,4 +13,8 @@ export default defineConfig({
       usePolling: true, 
     },
   },
+
+  define: {
+    global: "globalThis",
+  },
 })

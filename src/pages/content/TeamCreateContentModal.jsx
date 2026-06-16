@@ -58,7 +58,7 @@ const TeamCreateContentModal = ({ isOpen, onClose, onRefresh, selectedDate, team
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-2">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300 border border-slate-100">
         
         <div className="px-6 py-4 border-b border-slate-100 bg-[#063A3A]/5 flex justify-between items-center">

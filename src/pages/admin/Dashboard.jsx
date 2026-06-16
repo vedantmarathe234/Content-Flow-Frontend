@@ -1,23 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { Building2, Users, Clock, CheckSquare, UserCheck, FileText, CheckCircle, PlusCircle } from 'lucide-react';
+import { Building2, Users, Clock, CheckSquare, UserCheck, FileText } from 'lucide-react';
 import { getDashboardStats } from "../../services/contentService";
 import { getRecentActivity } from "../../services/notificationService";
 
-const activityData = [
-  { name: 'Mon', count: 10 }, { name: 'Tue', count: 18 }, { name: 'Wed', count: 12 },
-  { name: 'Thu', count: 25 }, { name: 'Fri', count: 15 }, { name: 'Sat', count: 32 }, { name: 'Sun', count: 28 }
-];
-
-const topDepartments = [
-  { name: 'Graphic Design', count: 45 }, { name: 'Digital Marketing', count: 38 },
-  { name: 'Video Editing', count: 32 }, { name: 'UI/UX Design', count: 28 },
-];
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState(null);
   const [recentActivities, setRecentActivities] = useState([]);
- 
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,15 +24,14 @@ const AdminDashboard = () => {
     };
     fetchData();
   }, []);
-  if (!stats) {
-  return (
-    <div className="p-6">
-      Loading Dashboard...
-    </div>
-  );
-}
 
-  
+  if (!stats) {
+    return (
+      <div className="p-6 font-sans text-sm font-semibold text-[#063A3A] animate-pulse">
+        Loading Dashboard...
+      </div>
+    );
+  }
 
   const total = stats.approved + stats.rejected + stats.pendingLeader + stats.pendingAdmin;
 
@@ -53,9 +42,9 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <div className="space-y-6 p-4 bg-slate-50/50 min-h-screen">
+    <div className="space-y-6 p-2 bg-slate-50/50 min-h-screen font-sans">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">Dashboard</h1>
+        <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">Admin Dashboard</h1>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -77,11 +66,15 @@ const AdminDashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-l-4 border-l-[#0D7A80] border-slate-200/80 shadow-sm">
+        <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-l-4 border-l-[#0D7A80] border-slate-200/80 shadow-sm flex flex-col">
           <h3 className="text-sm font-bold text-[#063A3A] mb-6">Weekly Content Activity</h3>
-          <div className="h-64 w-full">
+          
+          <div className="h-64 w-full relative min-h-[260px] flex-1">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={activityData}>
+              <AreaChart 
+                data={stats.weeklyActivity || []} 
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
                 <defs>
                   <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#0D7A80" stopOpacity={0.15}/>
@@ -89,27 +82,36 @@ const AdminDashboard = () => {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }} />
+                <XAxis 
+                  dataKey="name" 
+                  axisLine={false} 
+                  tickLine={false} 
+                  tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 500 }} 
+                />
                 <YAxis axisLine={false} tickLine={false} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                <Tooltip />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }} 
+                  labelStyle={{ fontWeight: '700', color: '#063A3A' }}
+                />
                 <Area type="monotone" dataKey="count" stroke="#0D7A80" strokeWidth={3} fill="url(#colorCount)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
-
-        <div className="bg-white p-6 rounded-2xl border  border-l-4 border-l-[#f59e0b] border-slate-200/80 shadow-sm">
+        
+        <div className="bg-white p-6 rounded-2xl border border-l-4 border-l-[#f59e0b] border-slate-200/80 shadow-sm flex flex-col">
           <h3 className="text-sm font-bold text-[#063A3A] mb-6">Content Status</h3>
-          <div className="h-44 flex items-center justify-center">
+          <div className="h-44 w-full relative min-h-[176px] flex items-center justify-center">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={statusData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                <Pie data={statusData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value" cx="50%" cy="50%">
                   {statusData.map((entry, index) => <Cell key={index} fill={entry.color} />)}
                 </Pie>
+                <Tooltip formatter={(value) => `${value}%`} />
               </PieChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 space-y-3 flex-1">
             {statusData.map((item) => (
               <div key={item.name} className="flex justify-between text-xs px-1">
                 <div className="flex items-center gap-2">
@@ -123,31 +125,42 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white p-6 rounded-2xl border border-l-4 border-l-[#0D7A80] border-slate-200/80 shadow-sm bg-[#0D7A80]/[0.01]">
-          <h3 className="text-sm font-bold text-[#063A3A] mb-5">Top Departments</h3>
-          <div className="space-y-3">
-            {topDepartments.map((dept, i) => (
-              <div key={i} className="flex justify-between items-center text-sm p-2.5 rounded-xl bg-white border border-slate-100 shadow-2xs">
-                <span className="text-slate-700 font-semibold">{i + 1}. {dept.name}</span>
-                <span className="font-bold text-[#0D7A80] bg-[#0D7A80]/5 px-2.5 py-1 rounded-lg text-xs">{dept.count}</span>
-              </div>
-            ))}
-          </div>
+
+     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div className="bg-white p-6 rounded-2xl border border-l-4 border-l-[#0D7A80] border-slate-200/80 shadow-sm bg-[#0D7A80]/[0.01]">
+    <h3 className="text-sm font-bold text-[#063A3A] mb-5">Top Departments</h3>
+    <div className="space-y-3">
+      {!stats.topDepartments || stats.topDepartments.length === 0 ? (
+        <div className="text-slate-400 font-medium text-xs text-center py-6">
+          No department statistics tracked yet.
         </div>
+      ) : (
+        stats.topDepartments.map((dept, i) => (
+          <div key={i} className="flex justify-between items-center text-sm p-2.5 rounded-xl bg-white border border-slate-100 shadow-2xs">
+            <span className="text-slate-700 font-semibold">{i + 1}. {dept.name}</span>
+            <span className="font-bold text-[#0D7A80] bg-[#0D7A80]/5 px-2.5 py-1 rounded-lg text-xs">{dept.count}</span>
+          </div>
+        ))
+      )}
+    </div>
+  </div>
 
         <div className="bg-white p-6 rounded-2xl border border-l-4 border-l-[#063A3A] border-slate-200/80 shadow-sm bg-[#063A3A]/[0.01]">
           <h3 className="text-sm font-bold text-[#063A3A] mb-5">Recent Activity</h3>
           <div className="space-y-3">
-            {recentActivities.map((act, i) => (
-              <div key={i} className="flex items-start gap-3 p-2.5 rounded-xl bg-white border border-slate-100 shadow-2xs">
-                <div className="mt-0.5 p-1.5 rounded-lg bg-slate-50 text-[#0D7A80]"><FileText size={16} /></div>
-                <div className="flex flex-col gap-0.5 min-w-0 flex-1">
-                  <span className="text-sm text-slate-700 font-semibold truncate">{act.message}</span>
-                  <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{new Date(act.createdAt).toLocaleDateString()}</span>
+            {recentActivities.length === 0 ? (
+              <p className="text-slate-400 font-medium text-xs text-center py-6">No recent pipeline activity tracked.</p>
+            ) : (
+              recentActivities.map((act, i) => (
+                <div key={i} className="flex items-start gap-3 p-2.5 rounded-xl bg-white border border-slate-100 shadow-2xs">
+                  <div className="mt-0.5 p-1.5 rounded-lg bg-slate-50 text-[#0D7A80]"><FileText size={16} /></div>
+                  <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                    <span className="text-sm text-slate-700 font-semibold truncate text-left">{act.message}</span>
+                    <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider text-left">{new Date(act.createdAt).toLocaleDateString()}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

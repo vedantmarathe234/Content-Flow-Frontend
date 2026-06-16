@@ -1,3 +1,4 @@
+
 import { useRef, useState, useEffect } from "react";
 import API from "../services/api";
 import { toast } from "react-hot-toast";
@@ -127,10 +128,10 @@ const Settings = () => {
   };
 
   return (
-    <div className="w-full max-w-6xl mx-auto p-4 font-sans text-slate-800 animate-in fade-in duration-300">
+    <div className="w-full mx-auto p-2 font-sans text-slate-800 animate-in fade-in duration-300">
       <div className="flex-1">
         
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
+        <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-100">
           <div className="flex items-center gap-4">
             <button
               onClick={() => navigate(-1)}
@@ -144,9 +145,6 @@ const Settings = () => {
               <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">
                 Account Settings
               </h1>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1">
-                Manage your account details and preferences
-              </p>
             </div>
           </div>
 
@@ -171,7 +169,7 @@ const Settings = () => {
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
           
           
-          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col items-center justify-center text-center self-start lg:sticky lg:top-6">
+          <div className="bg-white p-6 rounded-2xl shadow-sm border-y border-r border-slate-200/80 border-l-[4px] border-l-[#0D7A80] flex flex-col items-center justify-center text-center self-start lg:sticky lg:top-6">
             <div className="relative mb-4 group">
               <div 
                 className={`w-40 h-40 rounded-full bg-slate-100 border-2 overflow-hidden flex items-center justify-center transition-all ${isEditing ? "cursor-pointer border-dashed border-[#0D7A80] hover:opacity-80" : "border-slate-200"}`} 
@@ -212,7 +210,7 @@ const Settings = () => {
           
           <div className="space-y-6">
             
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border-y border-r border-slate-200/80 border-l-[4px] border-l-[#0D7A80]">
               <h3 className="font-bold text-base text-[#063A3A] mb-4">Personal Information</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -240,7 +238,7 @@ const Settings = () => {
             </div>
 
          
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border-y border-r border-slate-200/80 border-l-[4px] border-l-[#0D7A80] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="font-bold text-base text-[#063A3A]">Security & Privacy</h3>
                 <p className="text-sm font-medium text-slate-400 mt-0.5">Manage credentials and secure your digital account</p>
@@ -254,7 +252,7 @@ const Settings = () => {
             </div>
 
             {showChangePassword && (
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 animate-in fade-in slide-in-from-top-4 duration-200">
+              <div className="bg-white p-6 rounded-2xl shadow-sm border-y border-r border-slate-200/80 border-l-[4px] border-l-[#063A3A] animate-in fade-in slide-in-from-top-4 duration-200">
                 <h3 className="font-bold text-base text-[#063A3A] mb-4">
                   Change Password
                 </h3>

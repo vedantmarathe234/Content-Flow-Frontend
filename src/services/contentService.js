@@ -18,7 +18,6 @@ export const deleteContent = (id) =>
 export const getAllTeams = () =>
   API.get("/teams/all");
 
-/* ADD THESE */
 
 export const leaderApprove = (id) =>
   API.put(`/content/${id}/leader-approve`);
