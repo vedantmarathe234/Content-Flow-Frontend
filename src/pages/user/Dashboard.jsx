@@ -16,7 +16,10 @@ import {
   Clock,
   CheckCircle,
   XCircle,
-  Activity
+  Activity,
+    Trophy,
+    Star,
+    TrendingUp
 } from 'lucide-react';
 import API from "../../services/api";
 import { getMyDashboardStats, getTeamDashboardStats } from "../../services/contentService";
@@ -189,63 +192,92 @@ const UserDashboard = () => {
         )}
       </div>
 
-      {dashboardMode === "PERSONAL" && (
-          <div className="bg-gradient-to-r from-[#E8F7F7] via-white to-[#F0FFF4] border border-teal-100 rounded-2xl p-6 flex justify-between items-center shadow-sm">
+        {dashboardMode === "PERSONAL" && (
+            <div className="bg-gradient-to-r from-[#E8F7F7] via-white to-[#F0FFF4] border border-teal-100 rounded-2xl p-6 flex justify-between items-center shadow-sm">
 
-            <div>
-              <h2 className="text-xl font-bold text-slate-800">
-                Welcome back 👋
-              </h2>
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">
+                    Welcome back
+                  </h2>
 
-              <p className="text-sm text-slate-500 mt-1">
-                Here's your content overview and progress.
-              </p>
+                    <p className="text-sm text-slate-500 mt-1">
+                        Here's your content overview and progress.
+                    </p>
 
-              <div className="mt-5">
-                <p className="text-4xl font-extrabold text-emerald-600">
-                  {total > 0 ? Math.round((stats.approved * 100) / total) : 0}
-                  <span className="text-2xl ml-1">%</span>
-                </p>
-              </div>
+                    <div className="mt-5">
+                        <p className="text-4xl font-extrabold text-emerald-600">
+                            {total > 0
+                                ? Math.round((stats.approved * 100) / total)
+                                : 0}
+                            <span className="text-2xl ml-1">%</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex flex-col items-center justify-center min-w-[250px]">
+
+                    {total > 0 &&
+                    Math.round((stats.approved * 100) / total) >= 75 ? (
+
+                        <>
+                            <div className="w-20 h-20 rounded-full bg-yellow-50 border border-yellow-200 flex items-center justify-center mb-5">
+                                <Trophy
+                                    size={42}
+                                    className="text-yellow-600"
+                                />
+                            </div>
+
+                            <p className="font-bold text-emerald-600 text-2xl">
+                                Excellent Contributor
+                            </p>
+
+                            <p className="text-sm text-slate-500 mt-2">
+                                Keep up the great work!
+                            </p>
+                        </>
+                    ) : total > 0 &&
+                    Math.round((stats.approved * 100) / total) >= 50 ? (
+
+                        <>
+                            <div className="w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center mb-5">
+                                <Star
+                                    size={42}
+                                    className="text-amber-600"
+                                />
+                            </div>
+
+                            <p className="font-bold text-amber-600 text-2xl">
+                                Good Contributor
+                            </p>
+
+                            <p className="text-sm text-slate-500 mt-2">
+                                You're doing well.
+                            </p>
+                        </>
+                    ) : (
+
+                        <>
+                            <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-5">
+                                <TrendingUp
+                                    size={42}
+                                    className="text-blue-600"
+                                />
+                            </div>
+
+                            <p className="font-bold text-blue-600 text-2xl">
+                                Growing Contributor
+                            </p>
+
+                            <p className="text-sm text-slate-500 mt-2">
+                                Keep creating content.
+                            </p>
+                        </>
+                    )}
+
+                </div>
+
             </div>
-
-            <div className="text-right">
-              {total > 0 && Math.round((stats.approved * 100) / total) >= 75 ? (
-                  <>
-                    <div className="text-6xl">🏆</div>
-                    <p className="font-bold text-emerald-600 text-xl">
-                      Excellent Contributor
-                    </p>
-                    <p className="text-sm text-slate-500">
-                      Keep up the great work!
-                    </p>
-                  </>
-              ) : total > 0 && Math.round((stats.approved * 100) / total) >= 50 ? (
-                  <>
-                    <div className="text-6xl">⭐</div>
-                    <p className="font-bold text-amber-500 text-xl">
-                      Good Contributor
-                    </p>
-                    <p className="text-sm text-slate-500">
-                      You're doing well.
-                    </p>
-                  </>
-              ) : (
-                  <>
-                    <div className="text-6xl">📈</div>
-                    <p className="font-bold text-blue-500 text-xl">
-                      Growing Contributor
-                    </p>
-                    <p className="text-sm text-slate-500">
-                      Keep creating content.
-                    </p>
-                  </>
-              )}
-            </div>
-
-          </div>
-      )}
-
+        )}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {[
           { title: 'Total Content', val: stats.totalContent, icon: <FileText size={16} />, bg: 'bg-slate-100 text-slate-700', border: 'border-l-slate-400' },
