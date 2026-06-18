@@ -14,6 +14,8 @@ import UserDashboard from "./pages/user/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import CreateDepartment from "./pages/admin/CreateDepartment"; 
 import DepartmentDetails from "./pages/admin/DepartmentDetails"; 
+import InternContentPage from "./pages/admin/InternContentPage";
+import TeamContentPage from "./pages/admin/TeamContentPage";
 import TeamsPage from "./pages/admin/TeamsPage";
 import ContentPage from "./pages/content/ContentPage";
 import ContentDatePage from "./pages/content/ContentDatePage";
@@ -99,6 +101,8 @@ function App() {
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/create-department" element={<CreateDepartment />}/>
             <Route path="/admin/department/:id" element={<DepartmentDetails />} />
+            <Route path="/intern-content/:internId" element={<InternContentPage />} />
+            <Route path="/team-content/:teamId" element={<TeamContentPage />} />
             <Route path="/admin/teams" element={<TeamsPage />} />
             
             <Route path="/user/dashboard" element={<UserDashboard />} />

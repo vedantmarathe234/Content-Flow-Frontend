@@ -104,7 +104,7 @@ const EditContentModal = ({ id, onClose, onRefresh }) => {
 
   return (
     <div className="fixed inset-0 z-[120] bg-black/40 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] border border-slate-100 animate-in fade-in zoom-in duration-200">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] border border-slate-100 animate-in fade-in zoom-in duration-200  border border-l-[4px] border-l-amber-500 border-slate-100">
         
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-100 bg-[#063A3A]/5">
           <div>

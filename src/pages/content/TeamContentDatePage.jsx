@@ -4,7 +4,7 @@ import { getContentByTeamId } from "../../services/contentService";
 import StatusBadge from "./StatusBadge";
 import { ArrowLeft } from "lucide-react";
 import TeamCreateContentModal from "./TeamCreateContentModal";
-import ContentDetailsPage from "./ContentDetailsPage"; 
+import ContentDetailsPage from "./ContentDetailsPage";
 
 const TeamContentDatePage = () => {
   const navigate = useNavigate();
@@ -24,11 +24,15 @@ const TeamContentDatePage = () => {
 
   const fetchContent = async () => {
     try {
+      setLoading(true);
       const response = await getContentByTeamId(teamId);
       const filtered = (response.data || []).filter(
         (item) => item.scheduledDate === date
       );
-      setContents(filtered);
+
+      const sorted = filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+      setContents(sorted);
     } catch (error) {
       console.error(error);
     } finally {
@@ -47,8 +51,6 @@ const TeamContentDatePage = () => {
 
   return (
     <div className="w-full font-sans text-slate-800 p-2 min-h-screen bg-slate-50/50">
-      
-      
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <button
@@ -86,7 +88,6 @@ const TeamContentDatePage = () => {
         </div>
       )}
 
-      
       <div className="bg-white rounded-2xl shadow-sm border-y border-r border-slate-200/80 border-l-[4px] border-l-[#0D7A80] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
@@ -112,10 +113,12 @@ const TeamContentDatePage = () => {
                 contents.map((content) => (
                   <tr key={content.id} className="hover:bg-[#0D7A80]/10 transition-colors">
                     <td className="py-4 px-6 text-center">
-                    <span className="text-xs font-bold text-[#0D7A80] bg-[#0D7A80]/5 px-2 py-1 rounded-md  tracking-wider">{content.title}</span></td>
+                      <span className="text-xs font-bold text-[#0D7A80] bg-[#0D7A80]/5 px-2 py-1 rounded-md tracking-wider">
+                        {content.title}
+                      </span>
+                    </td>
                     <td className="py-4 px-6 text-center text-slate-500 text-xs">{content.scheduledDate}</td>
-                    <td className="py-4 px-6 text-slate-900 font-semibold text-center">
-                        {content.department}</td>
+                    <td className="py-4 px-6 text-slate-900 font-semibold text-center">{content.department}</td>
                     <td className="py-4 px-6 text-center">{content.createdBy}</td>
                     <td className="py-4 px-6">
                       <div className="flex justify-center items-center">
@@ -129,7 +132,7 @@ const TeamContentDatePage = () => {
                     </td>
                     <td className="py-4 px-6 text-center">
                       <button
-                        onClick={() => setSelectedContentId(content.id)} 
+                        onClick={() => setSelectedContentId(content.id)}
                         className="text-[#0D7A80] hover:text-[#063A3A] font-bold text-xs uppercase tracking-wider transition-colors underline-offset-4 hover:underline"
                       >
                         View Details
@@ -143,16 +146,14 @@ const TeamContentDatePage = () => {
         </div>
       </div>
 
-      
       {selectedContentId && (
-        <ContentDetailsPage 
-          id={selectedContentId} 
-          onClose={() => setSelectedContentId(null)} 
-          onRefresh={fetchContent} 
+        <ContentDetailsPage
+          id={selectedContentId}
+          onClose={() => setSelectedContentId(null)}
+          onRefresh={fetchContent}
         />
       )}
 
-      
       <TeamCreateContentModal
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}

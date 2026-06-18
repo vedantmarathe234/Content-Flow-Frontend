@@ -19,11 +19,13 @@ import {
   Activity,
     Trophy,
     Star,
+    Timer ,
     TrendingUp
 } from 'lucide-react';
 import API from "../../services/api";
 import { getMyDashboardStats, getTeamDashboardStats } from "../../services/contentService";
 import { getRecentActivity } from "../../services/notificationService";
+
 
 const UserDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -220,7 +222,7 @@ const UserDashboard = () => {
                     Math.round((stats.approved * 100) / total) >= 75 ? (
 
                         <>
-                            <div className="w-20 h-20 rounded-full bg-yellow-50 border border-yellow-200 flex items-center justify-center mb-5">
+                            <div className="w-20 h-20 rounded-full bg-yellow-50 border border-yellow-200 flex items-center justify-center mb-3">
                                 <Trophy
                                     size={42}
                                     className="text-yellow-600"
@@ -231,7 +233,7 @@ const UserDashboard = () => {
                                 Excellent Contributor
                             </p>
 
-                            <p className="text-sm text-slate-500 mt-2">
+                            <p className="text-sm text-slate-500 ">
                                 Keep up the great work!
                             </p>
                         </>
@@ -239,7 +241,7 @@ const UserDashboard = () => {
                     Math.round((stats.approved * 100) / total) >= 50 ? (
 
                         <>
-                            <div className="w-20 h-20 rounded-full bg-amber-100 flex items-center justify-center mb-5">
+                            <div className="w-15 h-15 rounded-full bg-amber-100 flex items-center justify-center mb-3">
                                 <Star
                                     size={42}
                                     className="text-amber-600"
@@ -250,14 +252,14 @@ const UserDashboard = () => {
                                 Good Contributor
                             </p>
 
-                            <p className="text-sm text-slate-500 mt-2">
+                            <p className="text-sm text-slate-500">
                                 You're doing well.
                             </p>
                         </>
                     ) : (
 
                         <>
-                            <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-5">
+                            <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center mb-3">
                                 <TrendingUp
                                     size={42}
                                     className="text-blue-600"
@@ -268,7 +270,7 @@ const UserDashboard = () => {
                                 Growing Contributor
                             </p>
 
-                            <p className="text-sm text-slate-500 mt-2">
+                            <p className="text-sm text-slate-500 ">
                                 Keep creating content.
                             </p>
                         </>
@@ -315,7 +317,9 @@ const UserDashboard = () => {
                 Once approved, they will be published.
               </p>
             </div>
-            <div className="text-2xl">⏳</div>
+           <div className="text-2xl">
+  <Timer className="w-8 h-8" /> 
+</div>
           </div>
       )}
   

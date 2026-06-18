@@ -145,8 +145,8 @@ const AdminDashboard = () => {
     </div>
   </div>
 
-        <div className="bg-white p-6 rounded-2xl border border-l-4 border-l-[#063A3A] border-slate-200/80 shadow-sm bg-[#063A3A]/[0.01]">
-          <h3 className="text-sm font-bold text-[#063A3A] mb-5">Recent Activity</h3>
+        <div className="bg-white p-6 rounded-2xl border border-l-4 border-l-[#0D7A80] border-slate-200/80 shadow-sm bg-[#0D7A80]/[0.01]">
+          <h3 className="text-sm font-bold text-[#0D7A80] mb-5">Recent Activity</h3>
           <div className="space-y-3">
             {recentActivities.length === 0 ? (
               <p className="text-slate-400 font-medium text-xs text-center py-6">No recent pipeline activity tracked.</p>

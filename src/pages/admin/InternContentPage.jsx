@@ -1,42 +1,38 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { getAllContent, getMyContents } from "../../services/contentService";
-import StatusBadge from "./StatusBadge";
+import { getAllContent } from "../../services/contentService";
+import StatusBadge from "../content/StatusBadge";
 import { ArrowLeft } from "lucide-react";
-import CreateContentModal from "./CreateContentModal";
-import ContentDetailsPage from "./ContentDetailsPage";
+import ContentDetailsPage from "../content/ContentDetailsPage";
 
-const ContentDatePage = () => {
+const InternContentPage = () => {
+  const { internId } = useParams();
   const navigate = useNavigate();
-  const { date } = useParams();
-
   const [contents, setContents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedContentId, setSelectedContentId] = useState(null);
+  const [internName, setInternName] = useState("Intern");
 
   useEffect(() => {
-    fetchContent();
-  }, [date]);
+    fetchInternContent();
+  }, [internId]);
 
-  const fetchContent = async () => {
+  const fetchInternContent = async () => {
     try {
-      const role = localStorage.getItem("role");
-      let response;
-
-      if (role === "ADMIN") {
-        response = await getAllContent();
-      } else {
-        response = await getMyContents();
-      }
-
-      const filtered = (response.data || []).filter(
-        (item) =>
-          item.scheduledDate === date && item.team === "Individual"
-      );
+      setLoading(true);
+      const response = await getAllContent();
+      const data = response.data || [];
+      
+      const filtered = data.filter((item) => {
+        return String(item.createdById) === String(internId);
+      });
 
       const sorted = filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
+      if (sorted.length > 0) {
+        setInternName(sorted[0].createdBy);
+      }
+      
       setContents(sorted);
     } catch (error) {
       console.error(error);
@@ -45,47 +41,19 @@ const ContentDatePage = () => {
     }
   };
 
-  const today = new Date().toISOString().split("T")[0];
-  const isPastDate = date < today;
-  const role = localStorage.getItem("role");
-  const canCreateContent = role === "INTERN" || role === "TEAM_LEADER";
-
   return (
     <div className="w-full font-sans text-slate-800 p-2 min-h-screen bg-slate-50/50">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-          >
+          <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
             <ArrowLeft size={20} className="text-[#063A3A]" />
           </button>
           <div>
-            <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">Content</h1>
-            <p className="text-sm text-slate-500 mt-0.5">{date}</p>
+            <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">{internName}'s Content</h1>
+            <p className="text-sm text-slate-500 mt-0.5">Content overview for this intern</p>
           </div>
         </div>
-
-        {canCreateContent && (
-          <button
-            onClick={() => setShowCreateModal(true)}
-            disabled={isPastDate}
-            className={`py-2 px-4 rounded-xl text-sm font-semibold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
-              isPastDate
-                ? "bg-slate-200 text-slate-400 cursor-not-allowed shadow-none"
-                : "bg-[#063A3A] hover:bg-[#0D7A80] text-white"
-            }`}
-          >
-            <span className="text-lg font-light">+</span> Add Content
-          </button>
-        )}
       </div>
-
-      {isPastDate && canCreateContent && (
-        <div className="mb-4 p-3 bg-rose-50 border border-rose-200/60 rounded-xl text-rose-700 text-xs font-semibold tracking-wide uppercase max-w-fit">
-          ⚠️ You cannot create content for past dates.
-        </div>
-      )}
 
       <div className="bg-white rounded-2xl shadow-sm border-y border-r border-slate-200/80 border-l-[4px] border-l-[#0D7A80] overflow-hidden">
         <div className="overflow-x-auto">
@@ -104,30 +72,22 @@ const ContentDatePage = () => {
             </thead>
             <tbody className="text-sm divide-y divide-slate-100 text-slate-600 font-medium">
               {loading ? (
-                <tr>
-                  <td colSpan="8" className="p-8 text-center text-slate-400 font-semibold">Loading...</td>
-                </tr>
+                <tr><td colSpan="8" className="p-8 text-center text-slate-400 font-semibold">Loading...</td></tr>
               ) : contents.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="p-8 text-center text-slate-500 font-medium">No content scheduled for this date.</td>
-                </tr>
+                <tr><td colSpan="8" className="p-8 text-center text-slate-500 font-medium">No content found for this intern.</td></tr>
               ) : (
                 contents.map((content) => (
                   <tr key={content.id} className="hover:bg-[#0D7A80]/10 transition-colors">
                     <td className="py-4 px-6 text-center">
                       {content.profilePhotoUrl ? (
-                        <img
-                          src={`http://localhost:8080/uploads/${content.profilePhotoUrl}`}
-                          alt={content.createdBy}
-                          className="w-10 h-10 rounded-full object-cover border mx-auto"
-                        />
+                        <img src={`http://localhost:8080/uploads/${content.profilePhotoUrl}`} alt={content.createdBy} className="w-10 h-10 rounded-full object-cover border mx-auto" />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-[#063A3A]/5 text-[#063A3A] flex items-center justify-center font-semibold mx-auto">
-                          {content.createdBy?.charAt(0)}
+                          {content.createdBy?.charAt(0) || 'U'}
                         </div>
                       )}
                     </td>
-                    <td className="py-4 px-6 text-center">{content.createdBy}</td>
+                    <td className="py-4 px-6 text-center">{content.createdBy || 'N/A'}</td>
                     <td className="py-4 px-6 text-center">
                       <span className="text-[11px] text-[#0D7A80] bg-[#0D7A80]/5 px-2 py-1 rounded-md tracking-wider">
                         {content.department}
@@ -165,18 +125,11 @@ const ContentDatePage = () => {
         <ContentDetailsPage
           id={selectedContentId}
           onClose={() => setSelectedContentId(null)}
-          onRefresh={fetchContent}
+          onRefresh={fetchInternContent}
         />
       )}
-
-      <CreateContentModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onRefresh={fetchContent}
-        selectedDate={date}
-      />
     </div>
   );
 };
 
-export default ContentDatePage;
+export default InternContentPage;

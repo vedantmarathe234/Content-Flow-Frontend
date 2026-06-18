@@ -4,6 +4,7 @@ import API from "../services/api";
 import { toast } from "react-hot-toast";
 import { FiArrowLeft } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { X, FileText, Link2, UploadCloud, Calendar, Layers, Pencil } from "lucide-react";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -188,9 +189,9 @@ const Settings = () => {
                 )}
               </div>
               {isEditing && (
-                <div onClick={handleUpload} className="absolute bottom-1 right-1 bg-[#0D7A80] text-white p-2 rounded-full cursor-pointer hover:bg-[#0D7A80] hover:scale-105 shadow-md transition-all ">
-                  ✏️
-                </div>
+                <div onClick={handleUpload} className="absolute bottom-1 right-1 bg-[#0D7A80] text-white p-2 rounded-full cursor-pointer hover:bg-[#0D7A80] hover:scale-105 shadow-md transition-all">
+  <Pencil size={16} /> 
+</div>
               )}
               <input type="file" ref={fileRef} hidden accept="image/*" onChange={handleFileChange} />
             </div>
