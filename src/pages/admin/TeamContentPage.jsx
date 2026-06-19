@@ -64,7 +64,7 @@ const TeamContentPage = () => {
             <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">
               Team: {teamName} Content
             </h1>
-            <p className="text-sm text-slate-500 mt-0.5">All team content</p>
+            <p className="text-sm text-slate-500 mt-0.5">Team content</p>
           </div>
         </div>
       </div>
