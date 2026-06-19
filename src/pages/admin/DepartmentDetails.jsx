@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation} from 'react-router-dom';
 import API from '../../services/api';
 import { FiArrowLeft, FiSearch, FiEdit2 } from 'react-icons/fi';
 import { Trash2, AlertTriangle, X } from 'lucide-react';
@@ -39,6 +39,7 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, itemName }) => {
 const DepartmentDetails = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const userRole = localStorage.getItem("role");
 
     const [details, setDetails] = useState({ departmentName: 'Loading...', interns: [] });
@@ -50,6 +51,13 @@ const DepartmentDetails = () => {
     const [currentTeam, setCurrentTeam] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [teamToDelete, setTeamToDelete] = useState(null);
+
+
+    useEffect(() => {
+        if (location.state?.searchInternName) {
+            setInternSearch(location.state.searchInternName);
+        }
+    }, [location.state]);
 
     const fetchData = async () => {
         try {
@@ -80,19 +88,63 @@ const DepartmentDetails = () => {
         }
     };
 
-    const filteredInterns = details.interns.filter((i) => i.name.toLowerCase().includes(internSearch.toLowerCase()));
-    const filteredTeams = allTeams.filter((t) => t.departmentId == id && t.name.toLowerCase().includes(teamSearch.toLowerCase()));
+   const filteredInterns = details.interns.filter((i) => i.name.toLowerCase().includes(internSearch.toLowerCase()));
 
+const filteredTeams = allTeams.filter((t) => {
+    const matchesDept = t.departmentId == id;
+    const matchesTeamSearch = t.name.toLowerCase().includes(teamSearch.toLowerCase());
+    
+    if (internSearch.trim() !== '') {
+        const searchTarget = internSearch.toLowerCase().trim();
+
+        const isMember = t.memberNames?.some(name => 
+            name && name.toLowerCase().includes(searchTarget)
+        );
+
+        const isLeader = t.teamLeaderName && t.teamLeaderName.toLowerCase().includes(searchTarget);
+        
+        return matchesDept && matchesTeamSearch && (isMember || isLeader);
+    }
+    
+    return matchesDept && matchesTeamSearch;
+});
     if (loading) return <div className="p-8">Loading...</div>;
 
     return (
         <div className="min-h-screen bg-slate-50 font-sans text-slate-800 ">
-            <div className="flex items-center mb-6">
-                <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-full transition-colors mr-4">
-                    <FiArrowLeft size={20} className="text-[#063A3A]" />
-                </button>
-                <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">{details.departmentName}</h1>
-            </div>
+          <div className="flex items-center mb-6">
+    <button 
+        onClick={() => {
+            if (location.state?.searchInternName) {
+                navigate(location.pathname, { replace: true, state: {} });
+                setInternSearch('');
+            } else {
+                navigate(-1);
+            }
+        }} 
+        className="p-2 hover:bg-slate-100 rounded-full transition-colors mr-4"
+    >
+        <FiArrowLeft size={20} className="text-[#063A3A]" />
+    </button>
+    <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight transition-all">
+            {internSearch ? internSearch : details.departmentName}
+        </h1>
+        
+        {internSearch && (
+            <button 
+                onClick={() => {
+                    navigate(location.pathname, { replace: true, state: {} });
+                    setInternSearch('');
+                }}
+                className="text-[10px] font-bold bg-[#0D7A80]/10 hover:bg-[#0D7A80]/20 text-[#0D7A80] px-2 py-1 rounded-md transition-colors flex items-center gap-1 cursor-pointer"
+                title="Clear filter and view all department data"
+            >
+                Clear Filter ✕
+            </button>
+        )}
+    </div>
+</div>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 h-[calc(100vh-140px)]">
                 <div className="xl:col-span-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col overflow-hidden">

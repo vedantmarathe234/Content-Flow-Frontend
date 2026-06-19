@@ -13,7 +13,6 @@ const Navbar = () => {
   const notificationRef = useRef(null);
   const dropdownRef = useRef(null);
   const [selectedContentId, setSelectedContentId] = useState(null);
-  
   const [user, setUser] = useState({ name: "Admin", profilePhotoUrl: "", email: "" });
   const [search, setSearch] = useState("");
   const [results, setResults] = useState({ users: [], teams: [], departments: [] });
@@ -21,21 +20,50 @@ const Navbar = () => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const userRes = await API.get("/users/me");
-        const computedPhotoUrl = userRes.data.profilePhotoUrl || userRes.data.profilePhoto || "";
+ 
+  const fetchUserData = async () => {
+    try {
+      const userRes = await API.get("/users/me");
+      const computedPhotoUrl = userRes.data.profilePhotoUrl || userRes.data.profilePhoto || "";
 
-        setUser({ 
-          name: userRes.data.name || "Admin", 
-          profilePhotoUrl: computedPhotoUrl,
-          email: userRes.data.email || ""
-        });
-        fetchNotifications();
-      } catch (err) { console.error(err); }
+      setUser({ 
+        name: userRes.data.name || "Admin", 
+        profilePhotoUrl: computedPhotoUrl,
+        email: userRes.data.email || ""
+      });
+
+      if (computedPhotoUrl) {
+        localStorage.setItem("profilePhotoUrl", computedPhotoUrl);
+      }
+    } catch (err) { 
+      console.error("Error retrieving dashboard profile keys:", err); 
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+    fetchNotifications();
+  }, []);
+
+ 
+  useEffect(() => {
+    const handleProfileSync = () => {
+      const liveCachedPhoto = localStorage.getItem("profilePhotoUrl");
+      if (liveCachedPhoto) {
+        setUser((prev) => ({
+          ...prev,
+          profilePhotoUrl: liveCachedPhoto
+        }));
+      }
     };
-    fetchData();
+
+    window.addEventListener("storage", handleProfileSync);
+    window.addEventListener("profilePhotoUpdated", handleProfileSync);
+
+    return () => {
+      window.removeEventListener("storage", handleProfileSync);
+      window.removeEventListener("profilePhotoUpdated", handleProfileSync);
+    };
   }, []);
 
   const userId = localStorage.getItem("userId");
@@ -131,19 +159,26 @@ const Navbar = () => {
     navigate("/auth");
   };
 
-  const handleResultClick = (type, item) => {
-    setSearch("");
-    setResults({ users: [], teams: [], departments: [] });
-    
-    if (type === "user") {
-      navigate(`/admin/user/${item.id}`);
-    } else if (type === "team") {
-      navigate(`/admin/team/${item.id}`, { state: { teamName: item.name } });
-    } else if (type === "department") {
-      navigate(`/admin/department/${item.id}`);
-    }
-  };
+const handleResultClick = (type, item) => {
+  setSearch("");
+  setResults({ users: [], teams: [], departments: [] });
+  
+  if (type === "user") {
+    const currentPath = window.location.pathname;
+    const prefix = currentPath.startsWith("/admin") ? "admin" : "user";
 
+    navigate(`/${prefix}/department/${item.departmentId}`, { 
+      state: { searchInternName: item.name } 
+    });
+  } else if (type === "team") {
+    const currentPath = window.location.pathname;
+    const targetRoute = currentPath.startsWith("/admin") ? "/admin/teams" : "/user/teams";
+
+    navigate(targetRoute, { state: { selectedTeamId: item.id, selectedTeamName: item.name } });
+  } else if (type === "department") {
+    navigate(`/admin/department/${item.id}`);
+  }
+};
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
@@ -241,37 +276,71 @@ const Navbar = () => {
                   </div>
                 ) : (
                   <div className="max-h-[400px] overflow-y-auto p-2 divide-y divide-slate-50">
-                    {notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        onClick={() => !notification.read && handleNotificationClick(notification)}
-                        className={`mx-1 my-1 p-3.5 rounded-xl border text-left transition-all ${
-                          notification.read
-                            ? "bg-slate-50/50 border-transparent opacity-60"
-                            : "bg-white hover:bg-[#063A3A]/[0.05] border-[#0D7A80]/10 hover:border-[#0D7A80]/30 hover:shadow-sm cursor-pointer"
-                        }`}
-                      >
-                        <div className="flex justify-between items-start gap-2">
-                          <p className={`text-sm leading-relaxed ${notification.read ? "text-slate-600 font-medium" : "text-slate-900 font-semibold"}`}>
-                            {notification.message}
-                          </p>
-                          {!notification.read && (
-                            <div className="w-2 h-2 rounded-full bg-[#0D7A80] mt-1.5 flex-shrink-0" />
-                          )}
-                        </div>
+                   {notifications.map((notification) => {
+  let dropdownMessage = notification.message || "";
 
-                        <div className="flex justify-between items-center mt-2.5">
-                          <p className="text-[11px] text-slate-400 font-medium">
-                            {new Date(notification.createdAt).toLocaleString()}
-                          </p>
-                          {notification.read && (
-                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
-                              Read
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+  try {
+    const currentUserName = localStorage.getItem("name");
+
+    if (currentUserName && currentUserName.trim() !== "") {
+      const trimmedName = currentUserName.trim();
+      
+      if (dropdownMessage.startsWith(`${trimmedName}'s content`)) {
+        const remainingText = dropdownMessage.substring(`${trimmedName}'s content`.length);
+        dropdownMessage = "Your content" + remainingText;
+      } 
+      else if (dropdownMessage.startsWith(trimmedName)) {
+        dropdownMessage = "You" + dropdownMessage.substring(trimmedName.length);
+      }
+    }
+  } catch (err) {
+    console.error("Error parsing notification dropdown safely:", err);
+    dropdownMessage = notification.message; 
+  }
+
+  return (
+    <div
+      key={notification.id}
+      onClick={() => !notification.read && handleNotificationClick(notification)}
+      className={`mx-1 my-1 p-3.5 rounded-xl border text-left transition-all ${
+        notification.read
+          ? "bg-slate-50/50 border-transparent opacity-60 cursor-default"
+          : "bg-white hover:bg-[#063A3A]/[0.05] border-[#0D7A80]/10 hover:border-[#0D7A80]/30 hover:shadow-sm cursor-pointer"
+      }`}
+    >
+      <div className="flex justify-between items-start gap-2">
+        <p className={`text-sm leading-relaxed ${notification.read ? "text-slate-600 font-medium" : "text-slate-900 font-semibold"}`}>
+          {dropdownMessage}
+        </p>
+        {!notification.read && (
+          <div className="w-2 h-2 rounded-full bg-[#0D7A80] mt-1.5 flex-shrink-0" />
+        )}
+      </div>
+
+      <div className="flex items-center gap-1.5 mt-2.5 flex-wrap">
+        <p className="text-[11px] text-slate-400 font-medium">
+          {new Date(notification.createdAt).toLocaleString()}
+        </p>
+        
+        {notification.teamName ? (
+          <span className="text-[9px] bg-[#0D7A80]/10 text-[#0D7A80] font-black px-1.5 py-0.5 rounded uppercase tracking-wide border border-[#0D7A80]/20">
+            {notification.teamName}
+          </span>
+        ) : (
+          <span className="text-[9px] bg-[#0D7A80]/10 text-[#0D7A80] font-black px-1.5 py-0.5 rounded uppercase tracking-wide border border-[#0D7A80]/20">
+            Individual
+          </span>
+        )}
+
+        {notification.departmentName && (
+          <span className="text-[9px] bg-[#0D7A80]/10 text-[#0D7A80] font-black px-1.5 py-0.5 rounded uppercase tracking-wide border border-[#0D7A80]/20">
+            {notification.departmentName}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+})}
                   </div>
                 )}
               </div>
@@ -283,11 +352,14 @@ const Navbar = () => {
               onClick={() => setShowDropdown(!showDropdown)} 
               className="flex items-center gap-3 cursor-pointer group border-l border-slate-100 pl-5 py-1 select-none"
             >
-              
               {user.profilePhotoUrl ? (
                 <img 
-                  src={`http://localhost:8080/uploads/${user.profilePhotoUrl}`} 
-                  className="w-9 h-9 rounded-full object-cover border border-slate-200  flex-shrink-0" 
+                  src={
+                    user.profilePhotoUrl.startsWith("http") 
+                      ? user.profilePhotoUrl 
+                      : `http://localhost:8080/uploads/${user.profilePhotoUrl}`
+                  } 
+                  className="w-9 h-9 rounded-full object-cover border border-slate-200 flex-shrink-0" 
                   alt={user.name} 
                 />
               ) : (
@@ -297,7 +369,7 @@ const Navbar = () => {
               )}
               <div className="flex items-center gap-1">
                 <span className="text-sm font-semibold text-slate-700 group-hover:text-[#063A3A] transition-colors">{user.name}</span>
-                <div className="px-1 text-slate-700  text-[10px] shrink-0 self-stretch flex items-center justify-center transition-colors">
+                <div className="px-1 text-slate-700 text-[10px] shrink-0 self-stretch flex items-center justify-center transition-colors">
                   ▼
                 </div>
               </div>
@@ -418,26 +490,63 @@ export const MobileNotificationBell = () => {
             </div>
           ) : (
             <div className="max-h-[300px] overflow-y-auto p-1.5 divide-y divide-slate-50">
-              {notifications.map((n) => (
-                <div
-                  key={n.id}
-                  onClick={() => !n.read && handleMobileAlertClick(n)}
-                  className={`p-3 rounded-xl text-left transition-all my-0.5 ${
-                    n.read
-                      ? "bg-slate-50/40 opacity-60"
-                      : "bg-white hover:bg-[#063A3A]/[0.04] border border-[#0D7A80]/5 hover:border-[#0D7A80]/20 cursor-pointer"
-                  }`}
-                >
-                  <div className="flex justify-between gap-1.5">
-                    <p className={`text-xs leading-normal ${n.read ? "text-slate-500" : "text-slate-800 font-semibold"}`}>
-                      {n.message}
-                    </p>
-                  </div>
-                  <p className="text-[9px] text-slate-400 mt-1.5">
-                    {new Date(n.createdAt).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
+              {notifications.map((n) => {
+  let mobileMessage = n.message || "";
+  try {
+    const currentUserName = localStorage.getItem("name");
+    if (currentUserName && currentUserName.trim() !== "") {
+      const trimmedName = currentUserName.trim();
+      if (mobileMessage.startsWith(`${trimmedName}'s content`)) {
+        mobileMessage = "Your content" + mobileMessage.substring(`${trimmedName}'s content`.length);
+      } else if (mobileMessage.startsWith(trimmedName)) {
+        mobileMessage = "You" + mobileMessage.substring(trimmedName.length);
+      }
+    }
+  } catch (err) {
+    console.error(err);
+  }
+
+  return (
+    <div
+      key={n.id}
+      onClick={() => !n.read && handleMobileAlertClick(n)}
+      className={`p-3 rounded-xl text-left transition-all my-0.5 ${
+        n.read
+          ? "bg-slate-50/40 opacity-60 cursor-default"
+          : "bg-white hover:bg-[#063A3A]/[0.04] border border-[#0D7A80]/5 hover:border-[#0D7A80]/20 cursor-pointer"
+      }`}
+    >
+      <div className="flex justify-between gap-1.5">
+        <p className={`text-xs leading-normal ${n.read ? "text-slate-500" : "text-slate-800 font-semibold"}`}>
+          {mobileMessage}
+        </p>
+      </div>
+      
+    
+      <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+        <p className="text-[9px] text-slate-400">
+          {new Date(n.createdAt).toLocaleDateString()}
+        </p>
+        
+        {n.teamName ? (
+          <span className="text-[8px] bg-[#0D7A80]/10 text-[#0D7A80] font-black px-1.5 py-0.5 rounded uppercase tracking-wide border border-[#0D7A80]/20">
+            {n.teamName}
+          </span>
+        ) : (
+          <span className="text-[8px] bg-[#0D7A80]/10 text-[#0D7A80] font-black px-1.5 py-0.5 rounded uppercase tracking-wide border border-[#0D7A80]/20">
+            Individual
+          </span>
+        )}
+
+        {n.departmentName && (
+          <span className="text-[8px] bg-[#0D7A80]/10 text-[#0D7A80] font-black px-1.5 py-0.5 rounded uppercase tracking-wide border border-[#0D7A80]/20">
+            {n.departmentName}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+})}
             </div>
           )}
         </div>

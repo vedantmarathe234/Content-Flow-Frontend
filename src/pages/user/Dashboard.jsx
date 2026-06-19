@@ -17,10 +17,10 @@ import {
   CheckCircle,
   XCircle,
   Activity,
-    Trophy,
-    Star,
-    Timer ,
-    TrendingUp
+  Trophy,
+  Star,
+  Timer,
+  TrendingUp
 } from 'lucide-react';
 import API from "../../services/api";
 import { getMyDashboardStats, getTeamDashboardStats } from "../../services/contentService";
@@ -32,11 +32,14 @@ const UserDashboard = () => {
   const [activities, setActivities] = useState([]);
   const [teams, setTeams] = useState([]);
   const [selectedTeam, setSelectedTeam] = useState(null);
-
   const [dashboardMode, setDashboardMode] = useState("PERSONAL");
-
+  const [computedTeamDetails, setComputedTeamDetails] = useState([]);
   const currentUserId = Number(localStorage.getItem("userId"));
   const role = localStorage.getItem("role");
+
+  const realAdminPendingCount = computedTeamDetails.reduce((acc, team) => {
+    return acc + (team.pendingAdmin || 0);
+  }, 0) || (stats?.pendingAdmin || 0);
 
   const fetchRecentActivity = async () => {
     try {
@@ -49,8 +52,9 @@ const UserDashboard = () => {
 
   const fetchDashboardStats = async (teamId = null) => {
     try {
-      let response;
+      setStats(null); 
 
+      let response;
       if (teamId) {
         response = await getTeamDashboardStats(teamId);
         setDashboardMode("TEAM");
@@ -65,20 +69,68 @@ const UserDashboard = () => {
     }
   };
 
-  const fetchTeams = async () => {
+  const fetchTeamsAndCalculations = async () => {
     try {
       const response = await API.get("/teams/my-team");
-      setTeams(response.data);
+      const teamList = response.data;
+      setTeams(teamList);
       setSelectedTeam(null);
+
+      const calculationPromises = teamList.map(async (team) => {
+        try {
+          const res = await getTeamDashboardStats(team.id);
+          const teamData = res.data;
+          
+          const approvedCount = teamData.approved || 0;
+          const rejectedCount = teamData.rejected || 0;
+          const pendingCount = teamData.pending ?? ((teamData.pendingLeader || 0) + (teamData.pendingAdmin || 0));
+          const teamTotal = approvedCount + rejectedCount + pendingCount;
+          const rate = teamTotal > 0 ? `${Math.round((approvedCount * 100) / teamTotal)}%` : "0%";
+
+          return {
+            ...team,
+            pendingAdmin: teamData.pendingAdmin || 0,
+            totalContent: teamTotal,
+            approvalRate: rate
+          };
+        } catch (err) {
+          console.error(`Error calculating metrics for team ${team.id}:`, err);
+          return { ...team, totalContent: 0, approvalRate: "0%", pendingAdmin: 0 };
+        }
+      });
+
+      const fullyComputedTeams = await Promise.all(calculationPromises);
+      
+      fullyComputedTeams.sort((a, b) => parseInt(b.approvalRate) - parseInt(a.approvalRate));
+      setComputedTeamDetails(fullyComputedTeams);
+
     } catch (error) {
-      console.error(error);
+      console.error("Error setting up team calculations component:", error);
     }
   };
 
   useEffect(() => {
     fetchDashboardStats();
-    fetchTeams();
+    fetchTeamsAndCalculations();
     fetchRecentActivity();
+
+    const handleLiveActivitySync = async () => {
+      console.log("Live update triggered. Fetching fresh activities...");
+      try {
+        const response = await getRecentActivity();
+        if (response && response.data) {
+          setActivities([...response.data]);
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    window.addEventListener("notificationsUpdated", handleLiveActivitySync);
+
+    return () => {
+      window.removeEventListener("notificationsUpdated", handleLiveActivitySync);
+    };
   }, []);
 
   if (!stats) {
@@ -116,12 +168,11 @@ const UserDashboard = () => {
     }
   ];
 
-
   const rawWeeklyActivity = stats.weeklyActivity || stats.weekly_activity || [];
   
   const chartData = rawWeeklyActivity.length > 0 
     ? rawWeeklyActivity.map(day => ({
-        name: day.day || day.dayName || "",
+        name: day.day || day.name || day.dayName || "",
         count: Number(day.count || 0)
       }))
     : [
@@ -147,7 +198,6 @@ const UserDashboard = () => {
           Manage your content workflow and team updates
         </p>
       </div>
-
 
       <div className="flex gap-2 flex-wrap items-center">
         <button
@@ -193,6 +243,7 @@ const UserDashboard = () => {
           </div>
         )}
       </div>
+
 
         {dashboardMode === "PERSONAL" && (
             <div className="bg-gradient-to-r from-[#E8F7F7] via-white to-[#F0FFF4] border border-teal-100 rounded-2xl p-6 flex justify-between items-center shadow-sm">
@@ -280,10 +331,13 @@ const UserDashboard = () => {
 
             </div>
         )}
+
+      
+
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {[
           { title: 'Total Content', val: stats.totalContent, icon: <FileText size={16} />, bg: 'bg-slate-100 text-slate-700', border: 'border-l-slate-400' },
-          { title: 'Pending', val: pendingCount, icon: <Clock size={16} />, bg: 'bg-amber-50 text-amber-600 border border-amber-100', border: 'border-l-amber-500' },
+          { title: 'Pending', val: dashboardMode === "PERSONAL" ? realAdminPendingCount : pendingCount, icon: <Clock size={16} />, bg: 'bg-amber-50 text-amber-600 border border-amber-100', border: 'border-l-amber-500' },
           { title: 'Approved', val: stats.approved, icon: <CheckCircle size={16} />, bg: 'bg-teal-50 text-[#0D7A80] border border-teal-100', border: 'border-l-[#0D7A80]' },
           { title: 'Rejected', val: stats.rejected, icon: <XCircle size={16} />, bg: 'bg-rose-50 text-rose-600 border border-rose-100', border: 'border-l-rose-500' },
           { title: 'Approval Rate', val: total > 0 ? `${Math.round((stats.approved * 100) / total)}%` : "0%", icon: <Activity size={16} />, bg: 'bg-[#063A3A]/5 text-[#063A3A] border border-[#063A3A]/10', border: 'border-l-[#063A3A]' }
@@ -307,20 +361,20 @@ const UserDashboard = () => {
         ))}
       </div>
 
-      {dashboardMode === "PERSONAL" && pendingCount > 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex justify-between items-center">
-            <div>
-              <p className="font-bold text-amber-800">
-                You have {pendingCount} content item(s) awaiting review.
-              </p>
-              <p className="text-sm text-amber-600">
-                Once approved, they will be published.
-              </p>
-            </div>
-           <div className="text-2xl">
-  <Timer className="w-8 h-8" /> 
-</div>
+      {dashboardMode === "PERSONAL" && realAdminPendingCount > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex justify-between items-center shadow-sm">
+          <div>
+            <p className="font-bold text-amber-800">
+              You have {realAdminPendingCount} content item(s) awaiting review.
+            </p>
+            <p className="text-sm text-amber-600 mt-0.5">
+              Once approved, they will be published.
+            </p>
           </div>
+          <div className="text-amber-500 bg-amber-100/50 p-2 rounded-xl">
+            <Timer className="w-6 h-6" />
+          </div>
+        </div>
       )}
   
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -330,7 +384,6 @@ const UserDashboard = () => {
           </h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              
               <AreaChart data={chartData}>
                 <defs>
                   <linearGradient id="userColorCount" x1="0" y1="0" x2="0" y2="1">
@@ -405,45 +458,114 @@ const UserDashboard = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-l-4 border-l-slate-400 border-slate-200/80 shadow-sm">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
-            Recent Activity
-          </h3>
-          <div className="space-y-3 max-h-[280px] overflow-y-auto custom-scrollbar">
-            {activities.length === 0 ? (
-              <p className="text-xs font-medium text-slate-400 py-2">No recent activity found.</p>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white p-6 rounded-2xl border border-l-4 border-l-[#0D7A80] border-slate-200/80 shadow-sm bg-[#0D7A80]/[0.01]">
+          <h3 className="text-sm font-bold text-[#063A3A] mb-5">Top Teams</h3>
+          <div className="space-y-3">
+            {!computedTeamDetails || computedTeamDetails.length === 0 ? (
+              <div className="text-slate-400 font-medium text-xs text-center py-6">
+                No team workspaces tracked yet.
+              </div>
             ) : (
-              activities.map((activity, index) => (
-                <div key={index} className="flex flex-col gap-0.5 border-b border-slate-100 last:border-0 pb-2.5 last:pb-0">
-                  <span className="text-xs font-bold text-slate-700 leading-relaxed">
-                    {activity.message}
-                  </span>
-                  <span className="text-[10px] font-semibold text-slate-400">
-                    {new Date(activity.createdAt).toLocaleString()}
-                  </span>
+              computedTeamDetails.map((team, i) => (
+                <div 
+                  key={team.id || i} 
+                  className="flex justify-between items-center text-sm p-2.5 rounded-xl bg-white border border-slate-100 shadow-2xs hover:bg-teal-50/20 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setSelectedTeam(team);
+                    fetchDashboardStats(team.id);
+                  }}
+                >
+                  <span className="text-slate-700 font-semibold">{i + 1}. {team.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-slate-400 text-xs">
+                      ({team.totalContent || 0} Contents)
+                    </span>
+                    <span className="font-bold text-[#0D7A80] bg-[#0D7A80]/5 px-2.5 py-1 rounded-lg text-xs">
+                      {team.approvalRate} Rate
+                    </span>
+                  </div>
                 </div>
               ))
             )}
           </div>
         </div>
+        <div className="bg-white p-6 rounded-2xl border border-l-4 border-l-[#063A3A] border-slate-200/80 shadow-sm bg-[#063A3A]/[0.01]">
+          <h3 className="text-sm font-bold text-[#063A3A] mb-5">Recent Activity</h3>
+          <div className="space-y-3 max-h-[380px] overflow-y-auto custom-scrollbar">
+            {activities.length === 0 ? (
+          <p className="text-slate-400 font-medium text-xs text-center py-6">No recent activity found.</p>
+        ) : (
+          activities.map((activity, index) => {
+            let displayMessage = activity.message || "";
+            try {
+              const currentUserName = localStorage.getItem("name");
+              
+              if (currentUserName && currentUserName.trim() !== "") {
+                const trimmedName = currentUserName.trim();
 
-        {role === "TEAM_LEADER" && (
-          <div className="bg-white p-5 rounded-xl border border-l-4 border-l-amber-500 border-slate-200/80 shadow-sm flex flex-col justify-center">
-            <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
-              <p className="text-xs font-bold text-amber-800 uppercase tracking-wider">
-                Pending Actions Required
-              </p>
-              <p className="text-sm font-bold text-slate-800 mt-1">
-                Team Content Pending Approval
-              </p>
-              <span className="inline-block mt-2 text-[10px] font-extrabold bg-amber-600 text-white px-2 py-0.5 rounded-md uppercase tracking-wider">
-                3 Pending Requests
-              </span>
-            </div>
-          </div>
+                if (displayMessage.startsWith(`${trimmedName}'s content`)) {
+                  const nameIndex = displayMessage.indexOf("'s content");
+                  if (nameIndex !== -1) {
+                    displayMessage = "Your content" + displayMessage.substring(nameIndex + 10);
+                  }
+                } 
+                
+                else if (displayMessage.startsWith(`${trimmedName} submitted new content`)) {
+                  displayMessage = "You submitted new content" + displayMessage.substring(trimmedName.length + 22);
+                }
+              }
+            } catch (err) {
+              console.error("Error formatting activity message safely:", err);
+            }
+
+            return (
+              <div key={index} className="flex items-start gap-3 p-2.5 rounded-xl bg-white border border-slate-100 shadow-2xs">
+                <div className="mt-0.5 p-1.5 rounded-lg bg-slate-50 text-[#0D7A80]">
+                  <FileText size={16} />
+                </div>
+                <div className="flex flex-col gap-0.5 min-w-0 flex-1">
+                  <span className="text-sm text-slate-700 font-semibold truncate text-left">
+                    {displayMessage}
+                  </span>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider text-left">
+                      {new Date(activity.createdAt).toLocaleDateString()}
+                    </span>
+                    {activity.teamName ? (
+                    <span className="text-[9px] bg-[#0D7A80]/10 text-[#0D7A80] font-black px-1.5 py-0.5 rounded uppercase tracking-wide border border-[#0D7A80]/20">
+                      {activity.teamName}
+                    </span>
+                  ) : (
+                    <span className="text-[9px] bg-[#0D7A80]/10 text-[#0D7A80] font-black px-1.5 py-0.5 rounded uppercase tracking-wide border border-[#0D7A80]/20">
+                      Individual
+                    </span>
+                  )}
+                  </div>
+                </div>
+              </div>
+            );
+          })
         )}
+          </div>
+        </div>
       </div>
+
+      {role === "TEAM_LEADER" && (
+        <div className="bg-white p-5 rounded-xl border border-l-4 border-l-amber-500 border-slate-200/80 shadow-sm flex flex-col justify-center">
+          <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
+            <p className="text-xs font-bold text-amber-800 uppercase tracking-wider">
+              Pending Actions Required
+            </p>
+            <p className="text-sm font-bold text-slate-800 mt-1">
+              Team Content Pending Approval
+            </p>
+            <span className="inline-block mt-2 text-[10px] font-extrabold bg-amber-600 text-white px-2 py-0.5 rounded-md uppercase tracking-wider">
+              3 Pending Requests
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

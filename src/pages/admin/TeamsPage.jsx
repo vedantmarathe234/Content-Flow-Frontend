@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import API from '../../services/api';
 import TeamModal from './TeamModal';
 import { Trash2, ArrowLeft, X, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { useNavigate } from 'react-router-dom';
 import { FiEdit2 } from 'react-icons/fi';
-
 
 const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, itemName }) => {
   if (!isOpen) return null;
@@ -66,15 +65,26 @@ const DeleteConfirmationModal = ({ isOpen, onClose, onConfirm, itemName }) => {
 
 const TeamsPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const userRole = localStorage.getItem("role");
 
   const [teams, setTeams] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTeam, setCurrentTeam] = useState(null);
 
-
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState(null);
+
+  const searchTeamId = location.state?.selectedTeamId;
+  const searchTeamName = location.state?.selectedTeamName;
+
+  const pageTitle = searchTeamId 
+    ? searchTeamName 
+    : (userRole === "ADMIN" ? "All Teams" : "My Teams");
+
+  const displayedTeams = searchTeamId 
+    ? teams.filter(t => t.id === searchTeamId)
+    : teams;
 
   const fetchTeams = async () => {
     try {
@@ -111,7 +121,6 @@ const TeamsPage = () => {
     void loadData();
   }, [userRole]);
 
-
   const handleDeleteClick = (team) => {
     setTeamToDelete(team);
     setIsDeleteModalOpen(true);
@@ -122,7 +131,11 @@ const TeamsPage = () => {
     try {
       await API.delete(`/teams/${teamToDelete.id}`);
       toast.success("Team deleted successfully");
-      await fetchTeams();
+      if (userRole === "ADMIN") {
+        await fetchTeams();
+      } else {
+        await fetchMyTeam();
+      }
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete team");
@@ -138,14 +151,32 @@ const TeamsPage = () => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <button
-            onClick={() => navigate(-1)}
+            onClick={() => {
+              if (searchTeamId) {
+                navigate(location.pathname, { replace: true, state: {} });
+              } else {
+                navigate(-1);
+              }
+            }}
             className="p-2 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
           >
             <ArrowLeft size={20} className="text-[#063A3A]" />
           </button>
-          <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">
-            {userRole === "ADMIN" ? "All Teams" : "My Teams"}
-          </h1>
+          
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">
+              {pageTitle}
+            </h1>
+            
+            {searchTeamId && (
+              <button 
+                onClick={() => navigate(location.pathname, { replace: true, state: {} })}
+                className="text-[10px] font-bold bg-[#0D7A80]/10 hover:bg-[#0D7A80]/20 text-[#0D7A80] px-2 py-1 rounded-md transition-colors cursor-pointer"
+              >
+                Clear Filter ✕
+              </button>
+            )}
+          </div>
         </div>
 
         {userRole === "ADMIN" && (
@@ -161,18 +192,18 @@ const TeamsPage = () => {
         )}
       </div>
 
-      {teams.length === 0 && (
+      {displayedTeams.length === 0 && (
         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
           <p className="text-slate-500 font-medium">
-            {userRole === "ADMIN"
-              ? "No teams found."
-              : "You are not assigned to any team yet."}
+            {searchTeamId 
+              ? "No team matching filter parameter found."
+              : (userRole === "ADMIN" ? "No teams found." : "You are not assigned to any team yet.")}
           </p>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {teams.map((team) => {
+        {displayedTeams.map((team) => {
           const sortedMembers = Array.isArray(team?.memberNames)
             ? team.memberNames.map((name, index) => ({
                 name,
@@ -218,7 +249,6 @@ const TeamsPage = () => {
                       <FiEdit2 size={15} />
                     </button>
                     <button
-                     
                       onClick={() => handleDeleteClick(team)}
                       className="text-red-500 hover:text-red-700 p-1 transition-colors cursor-pointer"
                     >
@@ -276,7 +306,6 @@ const TeamsPage = () => {
         />
       )}
 
-      
       <DeleteConfirmationModal
         isOpen={isDeleteModalOpen}
         onClose={() => setIsDeleteModalOpen(false)}
