@@ -257,7 +257,7 @@ const CreateDepartment = () => {
 
             {isCreateOpen && (
                 <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-                    <form onSubmit={handleCreateSubmit} className="bg-white p-6 rounded-2xl w-full max-w-md shadow-xl border border-slate-100 space-y-4">
+                    <form onSubmit={handleCreateSubmit} className="bg-white p-6 rounded-2xl w-full max-w-md shadow-xl border-l-[4px] border-l-[#0D7A80] border-slate-100 space-y-4">
                         <h3 className="text-lg font-bold text-[#063A3A]">Add New Department</h3>
                         <div className="space-y-1">
                             <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Name</label>

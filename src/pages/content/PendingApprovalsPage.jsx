@@ -3,7 +3,7 @@ import { getPendingContent } from "../../services/contentService";
 import { useNavigate } from "react-router-dom";
 import StatusBadge from "../content/StatusBadge";
 import ContentDetailsPage from "./ContentDetailsPage"; 
-import { FiArrowLeft } from "react-icons/fi"; // Arrow Icon Import केला आहे
+import { FiArrowLeft } from "react-icons/fi";
 
 const PendingApprovalsPage = () => {
   const [contents, setContents] = useState([]);
@@ -17,7 +17,8 @@ const PendingApprovalsPage = () => {
   const fetchPendingContent = async () => {
     try {
       const response = await getPendingContent();
-      setContents(response.data);
+      const sortedData = response.data.sort((a, b) => b.id - a.id);
+      setContents(sortedData);
     } catch (error) {
       console.error(error);
     }
@@ -25,7 +26,6 @@ const PendingApprovalsPage = () => {
 
   return (
     <div className="w-full font-sans p-2 text-slate-800 animate-in fade-in duration-300">
-      
       
       <div className="flex items-center gap-3 mb-6">
         <button 
@@ -35,15 +35,15 @@ const PendingApprovalsPage = () => {
         >
           <FiArrowLeft size={20} />
         </button>
-        <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">Pending Approvals</h1>
+        <h1 className="text-2xl font-bold text-[#063A3A] tracking-tight">Pending Contents</h1>
       </div>
 
       {contents.length === 0 ? (
         <div className="bg-white p-6 rounded-2xl shadow-sm border-y border-r border-slate-200/80 border-l-[4px] border-l-[#0D7A80] flex items-center justify-center min-h-[120px]">
-  <p className="text-slate-500 font-medium">
-    No pending approvals available at the moment.
-  </p>
-</div>
+          <p className="text-slate-500 font-medium">
+            No pending approvals available at the moment.
+          </p>
+        </div>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border-y border-r border-slate-200/80 overflow-hidden" style={{ borderLeft: '4px solid #0D7A80' }}>
           <div className="overflow-x-auto">

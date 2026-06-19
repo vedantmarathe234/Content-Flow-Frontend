@@ -37,9 +37,9 @@ const UserDashboard = () => {
   const currentUserId = Number(localStorage.getItem("userId"));
   const role = localStorage.getItem("role");
 
-  const realAdminPendingCount = computedTeamDetails.reduce((acc, team) => {
-    return acc + (team.pendingAdmin || 0);
-  }, 0) || (stats?.pendingAdmin || 0);
+  const getPendingCount = () => {
+    return (stats?.pendingLeader || 0) + (stats?.pendingAdmin || 0);
+  };
 
   const fetchRecentActivity = async () => {
     try {
@@ -83,24 +83,23 @@ const UserDashboard = () => {
           
           const approvedCount = teamData.approved || 0;
           const rejectedCount = teamData.rejected || 0;
-          const pendingCount = teamData.pending ?? ((teamData.pendingLeader || 0) + (teamData.pendingAdmin || 0));
+          const pendingCount = (teamData.pendingLeader || 0) + (teamData.pendingAdmin || 0);
           const teamTotal = approvedCount + rejectedCount + pendingCount;
           const rate = teamTotal > 0 ? `${Math.round((approvedCount * 100) / teamTotal)}%` : "0%";
 
           return {
             ...team,
             pendingAdmin: teamData.pendingAdmin || 0,
+            pendingLeader: teamData.pendingLeader || 0,
             totalContent: teamTotal,
             approvalRate: rate
           };
         } catch (err) {
-          console.error(`Error calculating metrics for team ${team.id}:`, err);
-          return { ...team, totalContent: 0, approvalRate: "0%", pendingAdmin: 0 };
+          return { ...team, totalContent: 0, approvalRate: "0%", pendingAdmin: 0, pendingLeader: 0 };
         }
       });
 
       const fullyComputedTeams = await Promise.all(calculationPromises);
-      
       fullyComputedTeams.sort((a, b) => parseInt(b.approvalRate) - parseInt(a.approvalRate));
       setComputedTeamDetails(fullyComputedTeams);
 
@@ -115,7 +114,6 @@ const UserDashboard = () => {
     fetchRecentActivity();
 
     const handleLiveActivitySync = async () => {
-      console.log("Live update triggered. Fetching fresh activities...");
       try {
         const response = await getRecentActivity();
         if (response && response.data) {
@@ -141,14 +139,8 @@ const UserDashboard = () => {
     );
   }
 
-  const pendingCount =
-      stats.pending ??
-      ((stats.pendingLeader || 0) + (stats.pendingAdmin || 0));
-
-  const total =
-      (stats.approved || 0) +
-      (stats.rejected || 0) +
-      pendingCount;
+  const pendingCount = getPendingCount();
+  const total = (stats.approved || 0) + (stats.rejected || 0) + pendingCount;
 
   const statusData = [
     {
@@ -233,8 +225,8 @@ const UserDashboard = () => {
         {selectedTeam && (
           <div className="text-xs font-semibold text-slate-400 ml-2">
             {dashboardMode === "PERSONAL"
-                ? "Personal Dashboard"
-                : `Team: ${selectedTeam?.name}`} <span className="text-slate-600">{selectedTeam.name}</span>
+              ? "Personal Dashboard"
+              : `Team: ${selectedTeam?.name}`} <span className="text-slate-600">{selectedTeam.name}</span>
             {isLeader && (
               <span className="ml-1.5 text-emerald-600 font-bold bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-full uppercase text-[9px] tracking-wider inline-block">
                 Team Leader
@@ -336,8 +328,8 @@ const UserDashboard = () => {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {[
-          { title: 'Total Content', val: stats.totalContent, icon: <FileText size={16} />, bg: 'bg-slate-100 text-slate-700', border: 'border-l-slate-400' },
-          { title: 'Pending', val: dashboardMode === "PERSONAL" ? realAdminPendingCount : pendingCount, icon: <Clock size={16} />, bg: 'bg-amber-50 text-amber-600 border border-amber-100', border: 'border-l-amber-500' },
+          { title: 'Total Content', val: total, icon: <FileText size={16} />, bg: 'bg-slate-100 text-slate-700', border: 'border-l-slate-400' },
+          { title: 'Pending', val: pendingCount, icon: <Clock size={16} />, bg: 'bg-amber-50 text-amber-600 border border-amber-100', border: 'border-l-amber-500' },
           { title: 'Approved', val: stats.approved, icon: <CheckCircle size={16} />, bg: 'bg-teal-50 text-[#0D7A80] border border-teal-100', border: 'border-l-[#0D7A80]' },
           { title: 'Rejected', val: stats.rejected, icon: <XCircle size={16} />, bg: 'bg-rose-50 text-rose-600 border border-rose-100', border: 'border-l-rose-500' },
           { title: 'Approval Rate', val: total > 0 ? `${Math.round((stats.approved * 100) / total)}%` : "0%", icon: <Activity size={16} />, bg: 'bg-[#063A3A]/5 text-[#063A3A] border border-[#063A3A]/10', border: 'border-l-[#063A3A]' }
@@ -361,11 +353,11 @@ const UserDashboard = () => {
         ))}
       </div>
 
-      {dashboardMode === "PERSONAL" && realAdminPendingCount > 0 && (
+      {pendingCount > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex justify-between items-center shadow-sm">
           <div>
             <p className="font-bold text-amber-800">
-              You have {realAdminPendingCount} content item(s) awaiting review.
+              {dashboardMode === "PERSONAL" ? "You have" : "There are"} {pendingCount} content item(s) awaiting review.
             </p>
             <p className="text-sm text-amber-600 mt-0.5">
               Once approved, they will be published.
@@ -376,7 +368,7 @@ const UserDashboard = () => {
           </div>
         </div>
       )}
-  
+ 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white p-5 rounded-xl border border-l-4 border-l-[#0D7A80] border-slate-200/80 shadow-sm">
           <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-6">
@@ -492,7 +484,7 @@ const UserDashboard = () => {
         </div>
         <div className="bg-white p-6 rounded-2xl border border-l-4 border-l-[#063A3A] border-slate-200/80 shadow-sm bg-[#063A3A]/[0.01]">
           <h3 className="text-sm font-bold text-[#063A3A] mb-5">Recent Activity</h3>
-          <div className="space-y-3 max-h-[380px] overflow-y-auto custom-scrollbar">
+          <div className="space-y-3 max-h-[380px] overflow-y-auto scrollbar scrollbar-thumb-[#0D7A80]/40 custom-scrollbar">
             {activities.length === 0 ? (
           <p className="text-slate-400 font-medium text-xs text-center py-6">No recent activity found.</p>
         ) : (
@@ -550,22 +542,6 @@ const UserDashboard = () => {
           </div>
         </div>
       </div>
-
-      {role === "TEAM_LEADER" && (
-        <div className="bg-white p-5 rounded-xl border border-l-4 border-l-amber-500 border-slate-200/80 shadow-sm flex flex-col justify-center">
-          <div className="p-4 rounded-xl bg-amber-50 border border-amber-100">
-            <p className="text-xs font-bold text-amber-800 uppercase tracking-wider">
-              Pending Actions Required
-            </p>
-            <p className="text-sm font-bold text-slate-800 mt-1">
-              Team Content Pending Approval
-            </p>
-            <span className="inline-block mt-2 text-[10px] font-extrabold bg-amber-600 text-white px-2 py-0.5 rounded-md uppercase tracking-wider">
-              3 Pending Requests
-            </span>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

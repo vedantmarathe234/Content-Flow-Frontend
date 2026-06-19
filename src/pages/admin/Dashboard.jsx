@@ -279,7 +279,7 @@ const AdminDashboard = () => {
           <h3 className="text-sm font-bold text-[#0D7A80] mb-5">
             Recent Activity
           </h3>
-          <div className="space-y-3">
+          <div className="space-y-3  max-h-[380px] overflow-y-auto scrollbar scrollbar-thumb-[#0D7A80]/40 custom-scrollbar">
             {recentActivities.length === 0 ? (
               <p className="text-slate-400 font-medium text-xs text-center py-6">
                 No recent pipeline activity tracked.
