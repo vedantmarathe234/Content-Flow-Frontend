@@ -13,16 +13,34 @@ const MediaPreviewModal = ({ isOpen, onClose, mediaUrl, title }) => {
 
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: e => {}, y: 0 });
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 }); 
 
   const videoRef = useRef(null);
   const viewportRef = useRef(null);
   const urlString = mediaUrl || "";
-
-  const isVideo = urlString.match(/\.(mp4|webm|ogg|mov|mkv)$/i) || urlString.includes("video/upload");
-  const isPdf = urlString.match(/\.pdf$/i);
-  const isDocOrExcel = urlString.match(/\.(docx|doc|xlsx|xls|pptx|ppt)$/i);
+  const isDriveLink = urlString.includes("drive.google.com");
+  const isVideo = !isDriveLink && (urlString.match(/\.(mp4|webm|ogg|mov|mkv)$/i) || urlString.includes("video/upload"));
+  const isPdf = !isDriveLink && urlString.match(/\.pdf$/i);
+  const isDocOrExcel = !isDriveLink && urlString.match(/\.(docx|doc|xlsx|xls|pptx|ppt)$/i);
   const isDocument = isPdf || isDocOrExcel;
+
+  const getEmbedUrl = (url) => {
+    if (!url) return "";
+    if (url.includes("/view") || url.includes("/edit")) {
+      return url.replace(/\/view.*$/, "/preview").replace(/\/edit.*$/, "/preview");
+    }
+    if (url.includes("id=")) {
+      try {
+        const id = url.split("id=")[1].split("&")[0];
+        return `https://drive.google.com/file/d/${id}/preview`;
+      } catch (e) {
+        return url;
+      }
+    }
+    return url;
+  };
+
+  const computedUrl = isDriveLink ? getEmbedUrl(urlString) : urlString;
 
   useEffect(() => {
     setZoom(1);
@@ -135,7 +153,6 @@ const MediaPreviewModal = ({ isOpen, onClose, mediaUrl, title }) => {
         style={{ borderLeft: '6px solid #0D7A80' }}
       >
         
-        
         <div className="flex items-center justify-between px-6 py-4 bg-white border-b border-slate-100 shrink-0 select-none">
           <div>
             <h2 className="text-xl font-bold text-[#063A3A] tracking-tight">
@@ -153,7 +170,7 @@ const MediaPreviewModal = ({ isOpen, onClose, mediaUrl, title }) => {
         <div 
           ref={viewportRef}
           className={`flex-1 bg-white relative overflow-auto select-none min-h-0 ${
-            isDocument ? "p-0 flex flex-col items-stretch" : "px-6 py-4 flex items-center justify-center"
+            isDocument || isDriveLink ? "p-0 flex flex-col items-stretch" : "px-6 py-4 flex items-center justify-center"
           }`}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -163,7 +180,7 @@ const MediaPreviewModal = ({ isOpen, onClose, mediaUrl, title }) => {
           <div 
             onMouseDown={handleMouseDown}
             className={`flex items-center justify-center bg-white ${
-              isDocument ? "w-full flex-1 h-full min-h-full items-stretch" : "w-full min-h-full max-w-full max-h-[54vh]"
+              isDocument || isDriveLink ? "w-full flex-1 h-full min-h-full items-stretch" : "w-full min-h-full max-w-full max-h-[54vh]"
             } ${zoom > 1 ? 'cursor-grabbing' : 'cursor-default'}`}
             style={{ 
               transform: `translate(${position.x}px, ${position.y}px) scale(${zoom})`,
@@ -172,9 +189,22 @@ const MediaPreviewModal = ({ isOpen, onClose, mediaUrl, title }) => {
             }}
           >
            
+            
+            {isDriveLink && (
+              <div className="w-full h-full relative bg-white flex-1 flex items-center justify-center">
+                <iframe
+                  src={computedUrl}
+                  className="w-full h-full border-0 flex-1 bg-white"
+                  title={title || "Drive Content Preview"}
+                />
+                
+                <div className="absolute inset-0 bg-transparent z-10 pointer-events-auto" />
+              </div>
+            )}
+
             {isPdf && (
               <iframe 
-                src={`${urlString}#toolbar=0&scrollbar=0`} 
+                src={`${computedUrl}#toolbar=0&scrollbar=0`} 
                 title={title} 
                 className="w-full h-full border-0 flex-1 bg-white"
                 style={{ backgroundColor: '#ffffff' }}
@@ -183,7 +213,7 @@ const MediaPreviewModal = ({ isOpen, onClose, mediaUrl, title }) => {
 
             {isDocOrExcel && (
               <iframe 
-                src={`https://docs.google.com/gview?url=${encodeURIComponent(urlString)}&embedded=true&bg=ffffff`}
+                src={`https://docs.google.com/gview?url=${encodeURIComponent(computedUrl)}&embedded=true&bg=ffffff`}
                 title={title}
                 className="w-full h-full border-0 flex-1 bg-white"
                 style={{ backgroundColor: '#ffffff' }}
@@ -197,7 +227,7 @@ const MediaPreviewModal = ({ isOpen, onClose, mediaUrl, title }) => {
               >
                 <video 
                   ref={videoRef}
-                  src={urlString} 
+                  src={computedUrl} 
                   className="max-w-full max-h-[52vh] object-contain bg-white rounded-xl"
                   onTimeUpdate={handleTimeUpdate}
                   onLoadedMetadata={handleLoadedMetadata}
@@ -214,9 +244,9 @@ const MediaPreviewModal = ({ isOpen, onClose, mediaUrl, title }) => {
               </div>
             )}
 
-            {!isVideo && !isDocument && (
+            {!isVideo && !isDocument && !isDriveLink && (
               <img 
-                src={urlString} 
+                src={computedUrl} 
                 alt={title || "Preview Window"} 
                 className={`max-w-full max-h-[54vh] object-contain select-none bg-white ${
                   zoom > 1 ? 'cursor-grab' : 'cursor-default'

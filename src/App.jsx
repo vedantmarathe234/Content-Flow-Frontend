@@ -107,6 +107,7 @@ function App() {
             
             <Route path="/user/dashboard" element={<UserDashboard />} />
             <Route path="/user/teams" element={<TeamsPage />} />
+            <Route path="/user/department/:id" element={<DepartmentDetails />} />
             
             <Route path="/content" element={<ContentPage />} />
             <Route path="/content/date/:date" element={<ContentDatePage />} />
