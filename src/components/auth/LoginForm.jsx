@@ -23,48 +23,34 @@ const LoginForm = ({ setIsLogin }) => {
     });
   };
 
-  const handleLogin = async (e) => {
+const handleLogin = async (e) => {
     e.preventDefault();
 
     try {
+      const response = await loginUser(formData);
 
-      const response =
-        await loginUser(formData);
-
-      localStorage.setItem(
-        "token",
-        response.data.token
-      );
-
-      localStorage.setItem(
-        "role",
-        response.data.role
-      );
-
-      localStorage.setItem(
-  "userId",
-  response.data.id
-);
-
-localStorage.setItem(
-  "name",
-  response.data.name
-);
-
-localStorage.setItem(
-  "email",
-  response.data.email
-);
-
-      
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("role", response.data.role);
+      localStorage.setItem("userId", response.data.id);
+      localStorage.setItem("name", response.data.name);
+      localStorage.setItem("email", response.data.email);
 
       toast.success("Login Successful");
 
-      navigate(
-        response.data.role === "ADMIN"
-          ? "/admin/dashboard"
-          : "/user/dashboard"
-      );
+      
+      const pendingRedirect = localStorage.getItem("redirectTargetPath");
+
+      if (pendingRedirect && pendingRedirect.includes("contentId=")) {
+        localStorage.removeItem("redirectTargetPath"); // Wipe clean immediately
+        navigate(pendingRedirect, { replace: true });
+      } else {
+        localStorage.removeItem("redirectTargetPath");
+        navigate(
+          response.data.role === "ADMIN"
+            ? "/admin/dashboard"
+            : "/user/dashboard"
+        );
+      }
 
     } catch {
       toast.error("Invalid Credentials");
