@@ -22,6 +22,7 @@ import ContentDatePage from "./pages/content/ContentDatePage";
 import PendingApprovalsPage from "./pages/content/PendingApprovalsPage";
 import TeamCalendarPage from "./pages/content/TeamCalendarPage"; 
 import TeamContentDatePage from "./pages/content/TeamContentDatePage";
+import DirectReviewPage from "./pages/content/DirectReviewPage";
 
 const MainLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -30,6 +31,8 @@ const MainLayout = () => {
   useEffect(() => {
     setIsSidebarOpen(false);
   }, [location.pathname]);
+
+  
 
   return (
     <div className="min-h-screen bg-slate-50 flex font-sans w-full relative">
@@ -104,6 +107,7 @@ function App() {
             <Route path="/intern-content/:internId" element={<InternContentPage />} />
             <Route path="/team-content/:teamId" element={<TeamContentPage />} />
             <Route path="/admin/teams" element={<TeamsPage />} />
+            <Route path="/content/direct-view" element={<DirectReviewPage />} />
             
             <Route path="/user/dashboard" element={<UserDashboard />} />
             <Route path="/user/teams" element={<TeamsPage />} />
